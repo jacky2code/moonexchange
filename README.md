@@ -231,5 +231,153 @@
   .env.local
   ```
 
+
+
+## 4. 冒烟测试
+
+需要开发两个合约
+
+- 一个 ERC20 代币合约
+- 加密货币交易合约
+
+### 4.1 代币合约
+
+- 在 contracts 文件夹中创建 Token.sol
+
+- 启动 ganache，在 truffle-config.js 中添加 ganache 本地网络
+
+  ```js
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "*"
+    },
+  },
+  ```
+
+- 在 truffle-config.js 中，配置编译器
+
+  ```js
+  // Configure your compilers
+  compilers: {
+    solc: {
+      version: "0.8.17", // Fetch exact version from solc-bin (default: truffle's version)
+      // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
+      settings: {          // See the solidity docs for advice about optimization and evmVersion
+       optimizer: {
+         enabled: true,
+         runs: 200
+       },
+      //  evmVersion: "byzantium"
+      }
+    }
+  }
+  ```
+
+  - 编译
+
+    ```bash
+    truffle compile
+    ```
+
+## 5. 智能合约测试
+
+- 在 contracts 文件夹中添加 Token.sol
+
+  ```solidity
+  / SPDX-License-Identifier: MIT
+  pragma solidity ^0.8.7;
+  
+  ontract Token{
+      // token name
+      string public name = "KaspaE";
+      string public symbol = "KSE";
+      // token 精度
+      uint public decimals = 18;
+      // 当前合约的token总量
+      uint public totalSupply;
+      
+      constructor() {
+          totalSupply = 100000000 * (10 ** decimals);
+      }
+  }
+  ```
+
+- 在 test 文件夹中添加 Token.test.js
+
+  ```js
+  const Token = artifacts.require('./Token')
+  require('chai')
+      .use(require('chai-as-promised'))
+      .should()
+  
+  // 合同函数
+  contract('Token', (accounts) => {
+      const name = 'KaspaE'
+      const symbol = 'KSE'
+      const decimals = '18'
+      const totalSupply = '100000000000000000000000000'
+      let token
+  
+      beforeEach(async () => {
+          token = await Token.new()
+      })
+  
+      describe('deployment', () => {
+          it('tracks the name', async () => {
+              const result = await token.name()
+              result.should.equal(name)
+          })
+  
+          it('tracks the symbol', async () => {
+              const result = await token.symbol()
+              result.should.equal(symbol)
+          })
+  
+          it('tracks the decimals', async () => {
+              const result = await token.decimals()
+              result.toString().should.equal(decimals)
+          })
+  
+          it('tracks the totalSupply', async () => {
+              const result = await token.totalSupply()
+              result.toString().should.equal(totalSupply)
+          })
+      })
+  })
+  ```
+
+- 进行测试
+
+  ```bash
+  truffle test
+  ```
+
+  输出测试结果：
+
+  ```bash
+  Using network 'development'.
+  
+  
+  Compiling your contracts...
+  ===========================
+  > Compiling ./src/contracts/Token.sol
+  > Artifacts written to /var/folders/84/d1j8r9m90rggg4b5vrwhck_m0000gn/T/test--52176-p1Vu9UNthx8j
+  > Compiled successfully using:
+     - solc: 0.8.17+commit.8df45f5f.Emscripten.clang
+  
+  
+    Contract: Token
+      deployment
+        ✔ tracks the name (126ms)
+        ✔ tracks the symbol (115ms)
+        ✔ tracks the decimals (170ms)
+        ✔ tracks the totalSupply (49ms)
+  
+  
+    4 passing (3s)
+  ```
+
   
 
