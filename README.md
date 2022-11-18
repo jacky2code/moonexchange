@@ -411,7 +411,7 @@
     }
     ```
 
-### 5.3 代币转移
+### 5.3 发送代币并测试
 
 - solidity 代码库
   - OpenZeppelin 各种安全的代码库
@@ -482,4 +482,130 @@
     })
     ```
 
+### 5.4 发送事件并测试
+
+- 定义事件
+
+  起初为了方便循序渐进学，先自己定义事件，后续中可以继承 IERC20.sol 接口
+
+  ```solidity
+  event Transfer(address indexed from, address indexed to, uint value);
+  ```
+
+- 在 transfer 方法中添加事件
+
+  ```solidity
+  emit Transfer(msg.sender, _to, _value);
+  ```
+
+- 添加测试单元
+
+  ```js
+  // 发送‘发送代币’事件
+  it('emits a transfer event', async () => {
+      const log = result.logs[0]
+      log.event.should.eq('Transfer')
+      const event = log.args
+      event.from.toString().should.eq(deployer, 'from is correct')
+      event.to.toString().should.eq(receiver, 'receiver is correct')
+      event.value.toString().should.eq(amount.toString(), 'value is correct')
+  })
+  ```
+
+### 5.5 发送代币失败测试
+
+- 在 transfer 函数中添加 require 条件
+
+  ```solidity
+  // 不能向0地址发送
+  require(_to != address(0), 'address is invalid');
+  // 余额不足校验
+  require(balanceOf[msg.sender] >= _value, 'insufficient balances');
+  ```
+
+- 添加测试代码
+
+  - 重构代码，分别测试成功和失败
+
+    ```solidity
+    // 订阅测试成功
+    describe('success', () => {
+        beforeEach(async () => {
+            amount = tokens(100)
+            // Transfer
+            result = await token.transfer(receiver, amount, {from: deployer})
+        })
+        // 发送代币余额
+        // more code ...
+        // 发送‘发送代币’事件
+        // more code ...
+    })
     
+    // 订阅测试失败
+    describe('failure', () => {
+    	// more code ...
+    })
+    ```
+
+  - 添加失败测试单元
+
+    - Helper.js 中添加常量
+
+      ```js
+      export const EVM_REVERT = 'VM Exception while processing transaction: revert'
+      ```
+
+    - 失败测试单元
+
+      ```js
+      // 订阅测试失败
+      describe('failure', () => {
+          // 余额不足测试
+          it('rejects insufficient balances', async() => {
+              let invalidAmount
+              invalidAmount = tokens(10000000000) // greater than totalSupply
+              await token.transfer(receiver, invalidAmount, {from: deployer}).should.be.rejectedWith(EVM_REVERT)
+              
+              invalidAmount = tokens(10)
+              // receiver has no tokens
+              await token.transfer(deployer, invalidAmount, {from: receiver}).should.be.rejectedWith(EVM_REVERT)
+          })
+          
+          // 无效接受者,不能想0地址发送代币（不能销毁）
+          it('rejects invalid receipients', async() => {
+              await token.transfer(0x0, amount, {from: deployer}).should.be.rejectedWith('invalid address')
+          })
+      })
+      ```
+
+- 测试后输出
+
+  ```bash
+  Compiling your contracts...
+  ===========================
+  > Compiling ./src/contracts/Token.sol
+  > Compiling @openzeppelin/contracts/token/ERC20/IERC20.sol
+  > Compiling @openzeppelin/contracts/utils/math/SafeMath.sol
+  > Artifacts written to /var/folders/84/d1j8r9m90rggg4b5vrwhck_m0000gn/T/test--59871-VrC7wgcHIuj4
+  > Compiled successfully using:
+     - solc: 0.8.17+commit.8df45f5f.Emscripten.clang
+     
+    Contract: Token
+      deployment
+        ✔ tracks the name (77ms)
+        ✔ tracks the symbol
+        ✔ tracks the decimals (43ms)
+        ✔ tracks the totalSupply (170ms)
+        ✔ assigns the total supply to the deployer (116ms)
+      sending tokens
+        success
+          ✔ transfers token balances (242ms)
+          ✔ emits a transfer event
+        failure
+          ✔ rejects insufficient balances (3143ms)
+          ✔ rejects invalid receipients
+  
+    9 passing (10s)
+  ```
+
+  

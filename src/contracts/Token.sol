@@ -18,6 +18,8 @@ contract Token {
     mapping(address => uint) public balanceOf;
     // // 批准映射
     // mapping(address => mapping(address => uint)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint value);
     
     constructor() {
         totalSupply = 100000000 * (10 ** decimals);
@@ -28,16 +30,20 @@ contract Token {
      * 把账户中的余额，由调用者发送到另一个账户中，并向链外汇报事件
      */
     function transfer(address _to, uint _value) external returns (bool) {
+        // 不能向0地址发送
+        require(_to != address(0), 'address is invalid');
+        // 余额不足校验
+        require(balanceOf[msg.sender] >= _value, 'insufficient balances');
         // 发送者减掉数量
         balanceOf[msg.sender] = balanceOf[msg.sender].sub(_value);
         // 接受者增加数量
         balanceOf[_to] = balanceOf[_to].add(_value);
-        // emit Transfer(msg.sender, _to, _value);
+        emit Transfer(msg.sender, _to, _value);
         return true;
     }
 
     // /**
-    //  * 把账户中的数量批准给另一个账户
+    //  * 把调用者账户中的数量批准给另一个账户
     //  */
     // function approve(address spender, uint _value) external returns (bool) {
     //     allowance[msg.sender][spender] = _value;
