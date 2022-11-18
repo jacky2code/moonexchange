@@ -5,6 +5,7 @@
   "author": "Jacky",
   "private": true,
   "dependencies": {
+    "@openzeppelin/contracts": "^4.8.0",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@testing-library/user-event": "14.4.3",
@@ -22,7 +23,7 @@
     "dotenv": "16.0.3",
     "lodash": "4.17.21",
     "moment": "2.29.4",
-    "openzeppelin-solidity": "4.6.0",
+    "openzeppelin-contracts": "4.0.0",
     "react": "18.2.0",
     "react-apexcharts": "1.4.0",
     "react-bootstrap": "2.6.0",
@@ -37,8 +38,8 @@
     "truffle-flattener": "1.6.0",
     "truffle-hdwallet-provider": "1.0.17",
     "truffle-hdwallet-provider-privkey": "0.3.0",
-    "web3":"1.8.1",
-    "web-vitals": "2.1.4"
+    "web-vitals": "2.1.4",
+    "web3": "1.8.1"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -2,20 +2,24 @@
  * @Author: Jacky Chang
  * @Date: 2022-11-16 12:04:15
  * @LastEditors: Jacky Chang
- * @LastEditTime: 2022-11-16 15:17:14
+ * @LastEditTime: 2022-11-16 23:24:15
  * @Description: 
  */
+import { tokens } from './Helpers'
+
 const Token = artifacts.require('./Token')
+
 require('chai')
     .use(require('chai-as-promised'))
     .should()
 
+
 // 合同函数
-contract('Token', (accounts) => {
+contract('Token', ([deployer, receiver]) => {
     const name = 'KaspaMoon'
     const symbol = 'KSMN'
     const decimals = '18'
-    const totalSupply = '100000000000000000000000000'
+    const totalSupply = tokens(100000000).toString()
     let token
 
     beforeEach(async () => {
@@ -40,7 +44,32 @@ contract('Token', (accounts) => {
 
         it('tracks the totalSupply', async () => {
             const result = await token.totalSupply()
-            result.toString().should.equal(totalSupply)
+            result.toString().should.equal(totalSupply.toString())
+        })
+
+        it('assigns the total supply to the deployer', async () => {
+            const result = await token.balanceOf(deployer)
+            result.toString().should.equal(totalSupply.toString())
+        })
+    })
+
+    describe('sending tokens', () => {
+        it('transfers token balances', async () => {
+            let balanceOf
+            // Before transfer
+            balanceOf = await token.balanceOf(deployer)
+            console.log("deployer balance before transfer", balanceOf.toString())
+            balanceOf = await token.balanceOf(receiver)
+            console.log("receiver balance before transfer", balanceOf.toString())
+
+            // Transfer
+            await token.transfer(receiver, tokens(100), {from: deployer})
+
+            // After transfer
+            balanceOf = await token.balanceOf(deployer)
+            console.log("deployer balance after transfer", balanceOf.toString())
+            balanceOf = await token.balanceOf(receiver)
+            console.log("receiver balance after transfer", balanceOf.toString())
         })
     })
 })

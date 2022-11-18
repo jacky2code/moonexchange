@@ -156,7 +156,7 @@
       "dotenv": "16.0.3",
       "lodash": "4.17.21",
       "moment": "2.29.4",
-      "openzeppelin-solidity": "4.6.0",
+      "openzeppelin-contracts": "4.0.0",
       "react": "18.2.0",
       "react-apexcharts": "1.4.0",
       "react-bootstrap": "2.6.0",
@@ -283,6 +283,8 @@
 
 ## 5. 智能合约测试
 
+### 5.1 部署合约并测试
+
 - 在 contracts 文件夹中添加 Token.sol
 
   ```solidity
@@ -379,5 +381,105 @@
     4 passing (3s)
   ```
 
-  
+### 5.2 总供应量分发测试
 
+- 总供应量分发给部署者
+
+  - 在 Token.sol 中添加账单映射，及构造方法中分发
+
+    ```solidity
+    // more code ...
+    // 账本映射: 地址/余额
+    mapping(address => uint) public balanceOf;
+    
+    constructor() {
+        totalSupply = 100000000 * (10 ** decimals);
+        balanceOf[msg.sender] = totalSupply;
+    }
+    // more code ...
+    ```
+
+  - 在 Token.test.js 中添加测试单元
+
+    ```js
+    // 合同函数
+    contract('Token', ([deployer]) => {
+      it('assigns the total supply to the deployer', async () => {
+        const result = await token.balanceOf(deployer)
+        result.toString().should.equal(totalSupply)
+    	})
+    }
+    ```
+
+### 5.3 代币转移
+
+- solidity 代码库
+  - OpenZeppelin 各种安全的代码库
+
+- 在 Token.sol 中引入 SafeMath.sol
+
+  ```solidity
+  import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+  ```
+
+  合约中使用
+
+  ```solidity
+  using SafeMath for uint;
+  ```
+
+
+- 新增发送方法
+
+  ```solidity
+  /**
+   * 把账户中的余额，由调用者发送到另一个账户中，并向链外汇报事件
+   */
+  function transfer(address _to, uint _value) external returns (bool) {
+      // 发送者减掉数量
+      balanceOf[msg.sender] = balanceOf[msg.sender].sub(_value);
+      // 接受者增加数量
+      balanceOf[_to] = balanceOf[_to].add(_value);
+      // emit Transfer(msg.sender, _to, _value);
+      return true;
+  }
+  ```
+
+- 单元测试
+
+  - 新增 Helpers.js 拆分公共方法 tokens 函数
+
+    ```js
+    // wei转换bigNumber
+    export const tokens = (n) => {
+        return new web3.utils.toBN(
+            web3.utils.toWei(n.toString(), 'ether')
+        )
+    }
+    ```
+
+  - Token.test.js 中单元测试
+
+    ```js
+    describe('sending tokens', () => {
+        it('transfers token balances', async () => {
+            let balanceOf
+            // Before transfer
+            balanceOf = await token.balanceOf(deployer)
+            console.log("deployer balance before transfer", balanceOf.toString())
+            balanceOf = await token.balanceOf(receiver)
+            console.log("receiver balance before transfer", balanceOf.toString())
+    
+            // Transfer
+            await token.transfer(receiver, tokens(100), {from: deployer})
+    
+            // After transfer
+            balanceOf = await token.balanceOf(deployer)
+            console.log("deployer balance after transfer", balanceOf.toString())
+            balanceOf = await token.balanceOf(receiver)
+            console.log("receiver balance after transfer", balanceOf.toString())
+        })
+    })
+    ```
+
+    
