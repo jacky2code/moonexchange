@@ -677,4 +677,129 @@
   })
   ```
 
+### 5.5 代理发送代币并测试
+
+- 重构代码
+
+  - 新建 __transfer()_ 函数，用于提取公共方法
+
+    ```solidity
+    /** 
+     * name: 发送代币
+     * desc: 把账户中的余额，由调用者发送到另一个账户中
+     * param {address} _from 发送方
+     * param {address} _to 接收方
+     * param {uint} _value 数量
+     */    
+    function _transfer(address _from, address _to, uint _value) internal {
+         // 不能向0地址发送
+        require(_to != address(0), 'address is invalid');
+         // 发送者减掉数量
+        balanceOf[_from] = balanceOf[_from].sub(_value);
+        // 接受者增加数量
+        balanceOf[_to] = balanceOf[_to].add(_value);
+        emit Transfer(_from, _to, _value);
+    }
+    ```
+
+  - 更改 transfer() 函数
+
+    ```solidity
+    function transfer(address _to, uint _value) external returns (bool) {
+        // 余额不足校验
+        require(balanceOf[msg.sender] >= _value, 'insufficient balances');
+        _transfer(msg.sender, _to, _value);      
+        return true;
+    }
+    ```
+
+  - 新建 transferFrom() 函数
+
+    ```solidity
+    /** 
+     * name: transferFrom
+     * desc: 向另一个合约存款的时候，另一个合约需要调用 transferFrom 把token拿到它的合约中
+     * param {address} _from
+     * param {address} _to
+     * param {uint} _value
+     * return {bool}
+     */     
+    function transferFrom(address _from, address _to, uint _value) external returns (bool) {
+        // 小于等于拥有数量
+        require(_value <= balanceOf[_from]);
+        // 小于等于批准数量
+        require(_value <= allowance[_from][msg.sender]);
+        _transfer(_from, _to, _value);
+        allowance[_from][msg.sender] = allowance[_from][msg.sender].sub(_value);
+        return true;
+    }
+    ```
+
+- 添加测试单元
+
+  ```js
+  // 代理发送代币
+  describe('delegated token transfers', () => {
+      let amount
+      let result
+  
+      beforeEach(async () => {
+          amount = tokens(100)
+          // 部署者先批准 100 个代币到交易所，然后由交易所调用 transferFrom 函数，发送至接收者
+          await token.approve(exchange, amount, {from: deployer})
+      })
+  
+      // 订阅测试成功
+      describe('success', () => {
+          beforeEach(async () => {
+              amount = tokens(100)
+              // Transfer
+              result = await token.transferFrom(deployer, receiver, amount, { from: exchange })
+          })
+  
+          // 发送代币余额
+          it('transfers token balances', async () => {
+              let balanceOf
+  
+              // After transfer
+              balanceOf = await token.balanceOf(deployer)
+              balanceOf.toString().should.equal(tokens(99999900).toString())
+              balanceOf = await token.balanceOf(receiver)
+              balanceOf.toString().should.equal(tokens(100).toString())
+          })
+  
+          // 重置账单
+          it('rests the allowance', async () => {
+              const allowance = await token.allowance(deployer, exchange)
+              allowance.toString().should.eq('0')
+          })
+  
+          // 发送‘发送代币’事件
+          it('emits a transfer event', async () => {
+              const log = result.logs[0]
+              log.event.should.eq('Transfer')
+              const event = log.args
+              event.from.toString().should.eq(deployer, 'from is correct')
+              event.to.toString().should.eq(receiver, 'receiver is correct')
+              event.value.toString().should.eq(amount.toString(), 'value is correct')
+          })
+      })
+  
+      // 订阅测试失败
+      describe('failure', () => {
+          // 余额不足测试
+          it('rejects insufficient balances', async () => {
+              let invalidAmount
+              invalidAmount = tokens(10000000000) // greater than totalSupply
+              await token.transferFrom(deployer, receiver, invalidAmount, { from: exchange }).should.be.rejectedWith(EVM_REVERT)
+          })
+  
+          // 无效接受者,不能想0地址发送代币（不能销毁）
+          it('rejects invalid receipients', async () => {
+              await token.transferFrom(deployer, 0x0, amount, { from: exchange }).should.be.rejectedWith('invalid address')
+          })
+      })
+  })
+  ```
+
   
