@@ -1,9 +1,9 @@
 /**
- * @Author: Jacky Chang
- * @Date: 2022-11-16 12:04:15
- * @LastEditors: Jacky Chang
- * @LastEditTime: 2022-11-18 16:33:08
- * @Description: 
+ * Author: GKing
+ * Date: 2022-11-15 22:19:58
+ * @LastEditors: GKing
+ * @LastEditTime: 2022-11-18 20:52:41
+ * Description: 
  */
 import { tokens, EVM_REVERT } from './Helpers'
 
@@ -15,7 +15,7 @@ require('chai')
 
 
 // 合同函数
-contract('Token', ([deployer, receiver]) => {
+contract('Token', ([deployer, receiver, exchange]) => {
     const name = 'KaspaMoon'
     const symbol = 'KSMN'
     const decimals = '18'
@@ -65,20 +65,20 @@ contract('Token', ([deployer, receiver]) => {
             beforeEach(async () => {
                 amount = tokens(100)
                 // Transfer
-                result = await token.transfer(receiver, amount, {from: deployer})
+                result = await token.transfer(receiver, amount, { from: deployer })
             })
-            
+
             // 发送代币余额
             it('transfers token balances', async () => {
                 let balanceOf
-                
+
                 // After transfer
                 balanceOf = await token.balanceOf(deployer)
                 balanceOf.toString().should.equal(tokens(99999900).toString())
                 balanceOf = await token.balanceOf(receiver)
                 balanceOf.toString().should.equal(tokens(100).toString())
             })
-            
+
             // 发送‘发送代币’事件
             it('emits a transfer event', async () => {
                 const log = result.logs[0]
@@ -93,24 +93,57 @@ contract('Token', ([deployer, receiver]) => {
         // 订阅测试失败
         describe('failure', () => {
             // 余额不足测试
-            it('rejects insufficient balances', async() => {
+            it('rejects insufficient balances', async () => {
                 let invalidAmount
                 invalidAmount = tokens(10000000000) // greater than totalSupply
-                await token.transfer(receiver, invalidAmount, {from: deployer}).should.be.rejectedWith(EVM_REVERT)
-                
+                await token.transfer(receiver, invalidAmount, { from: deployer }).should.be.rejectedWith(EVM_REVERT)
+
                 invalidAmount = tokens(10)
                 // receiver has no tokens
-                await token.transfer(deployer, invalidAmount, {from: receiver}).should.be.rejectedWith(EVM_REVERT)
+                await token.transfer(deployer, invalidAmount, { from: receiver }).should.be.rejectedWith(EVM_REVERT)
             })
-            
+
             // 无效接受者,不能想0地址发送代币（不能销毁）
-            it('rejects invalid receipients', async() => {
-                await token.transfer(0x0, amount, {from: deployer}).should.be.rejectedWith('invalid address')
+            it('rejects invalid receipients', async () => {
+                await token.transfer(0x0, amount, { from: deployer }).should.be.rejectedWith('invalid address')
             })
         })
-        
+    })
 
+    // 批准发送代币
+    describe('approving tokens', () => {
+        let amount
+        let result
 
+        beforeEach(async () => {
+            amount = tokens(100)
+            result = await token.approve(exchange, amount, { from: deployer })
+        })
+
+        describe('success', () => {
+            // 批准发送
+            it('allocates an allowance for delegate token spending on exchange', async () => {
+                const allowance = await token.allowance(deployer, exchange)
+                allowance.toString().should.eq(amount.toString())
+            })
+
+            // 发送‘批准发送’事件
+            it('emits an Approval event', async () => {
+                const log = result.logs[0]
+                log.event.should.eq('Approval')
+                const event = log.args
+                event.owner.toString().should.eq(deployer, 'owner is correct')
+                event.spender.toString().should.eq(exchange, 'spender is correct')
+                event.value.toString().should.eq(amount.toString(), 'value is correct')
+            })
+        })
+
+        describe('failure', () => {
+            // 无效接受者,不能想0地址发送代币（不能销毁）
+            it('rejects invalid', async () => {
+                await token.approve(0x0, amount, { from: deployer }).should.be.rejectedWith('invalid address')
+            })
+        })
     })
 
 })
