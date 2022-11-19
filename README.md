@@ -281,7 +281,7 @@
     truffle compile
     ```
 
-## 5. 智能合约测试
+## 5. 代币智能合约
 
 ### 5.1 部署合约并测试
 
@@ -802,4 +802,130 @@
   })
   ```
 
+### 5.6 继承 IERC接口
+
+- 引入 IERC20.sol
+
+  ```solidity
+  import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  ```
+
+- 修改代码
+
+  ```solidity
+  contract Token is IERC20 {}
+  ```
+
+  删除两个事件定义
+
   
+
+
+
+## 6. Cryptocurrency Exchange Smart Contract
+
+### 6.1 创建合约
+
+- 新增 Exchange.sol
+
+  ```solidity
+  /**
+   * Author: GKing
+   * Date: 2022-11-19 08:45:25
+   * LastEditors: GKing
+   * LastEditTime: 2022-11-19 14:59:13
+   * Description: 交易所合约
+   *  - Deposit & Withdraw Funds 存入提取资金
+   *  - Manage Orders - Make or Cancel 管理订单
+   *  - Handle Trades - Charge fees 交易
+   * TODO: 
+   * Set the fee account
+   * Deposit Ether
+   * Withdraw Ether
+   * Deposit tokens
+   * Withdraw tokens
+   * Check balances
+   * Make order
+   * Cancel order
+   * Fill order
+   */
+  // SPDX-License-Identifier: MIT
+  pragma solidity ^0.8.7;
+  import "./Token.sol";
+  import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+  
+  
+  contract Exchange {
+      using SafeMath for uint256;
+  
+      // 收取交易所交易费的账户
+      address public feeAccount;
+      // 交易费率
+      uint public feePercent;
+      // 交易所代币账单 关系 token地址 => (用户地址 => 数量)
+      mapping(address => mapping(address => uint)) public tokens;
+  
+      constructor(address _feeAccount, uint _feePercent) {
+          feeAccount = _feeAccount;
+          feePercent = _feePercent;
+      }
+  ```
+
+- 部署测试
+
+  新增 Exchange.test.js
+
+  ```js
+  /**
+   * @Author: GKing
+   * @Date: 2022-11-19 10:54:40
+   * @LastEditors: GKing
+   * @LastEditTime: 2022-11-19 15:05:26
+   * @Description: 
+   * @TODO: 
+   */
+  import { tokens, EVM_REVERT } from './Helpers'
+  
+  const Token = artifacts.require('./Token')
+  const Exchange = artifacts.require('./Exchange')
+  
+  require('chai')
+      .use(require('chai-as-promised'))
+      .should()
+  
+  // 合同函数
+  contract('Exchange', ([deployer, feeAccount, user1]) => {
+      let token
+      let exchange
+      const feePercent = 10
+  
+      beforeEach(async () => {
+          // 部署代币合约
+          token = await Token.new()
+          // 发送代币
+          token.transfer(user1, tokens(100), {from: deployer})
+          // 部署交易所合约，通过构造函数传参
+          exchange = await Exchange.new(feeAccount, feePercent)
+          
+      })
+  
+      // 单元测试部署
+      describe('deployment', () => {
+          // 跟踪 account
+          it('tracks the fee account', async () => {
+              const result = await exchange.feeAccount()
+              result.should.eq(feeAccount)
+          })
+  
+          // 跟踪 feePercent
+          it('tracks the fee feePercent', async () => {
+              const result = await exchange.feePercent()
+              result.toString().should.eq(feePercent.toString())
+          })
+      })
+  
+  })
+  ```
+
+  
+

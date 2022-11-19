@@ -2,8 +2,8 @@
  * Author: GKing
  * Date: 2022-11-15 22:19:58
  * LastEditors: GKing
- * LastEditTime: 2022-11-18 22:09:26
- * Description:
+ * LastEditTime: 2022-11-19 14:56:21
+ * Description: 代币合约
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
@@ -11,7 +11,7 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Token {
+contract Token is IERC20 {
     using SafeMath for uint256;
 
     // token name
@@ -23,15 +23,15 @@ contract Token {
     uint256 public totalSupply;
     // 账本映射: 地址/余额
     mapping(address => uint256) public balanceOf;
-    // 批准映射: 第一个参数address代表批准人，第二个参数address代表发送给哪个地址（如交易所），第三个参数代表数量
+    // 批准映射关系 批准人 => (发送至(如交易所)地址 => 数量))
     mapping(address => mapping(address => uint256)) public allowance;
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    // event Transfer(address indexed from, address indexed to, uint256 value);
+    // event Approval(
+    //     address indexed owner,
+    //     address indexed spender,
+    //     uint256 value
+    // );
 
     constructor() {
         totalSupply = 100000000 * (10**decimals);
