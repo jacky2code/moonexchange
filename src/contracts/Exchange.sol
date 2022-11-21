@@ -2,7 +2,7 @@
  * Author: GKing
  * Date: 2022-11-19 08:45:25
  * LastEditors: GKing
- * LastEditTime: 2022-11-21 18:20:17
+ * LastEditTime: 2022-11-21 19:07:59
  * Description: 交易所合约
  *  - Deposit & Withdraw Funds 存入提取资金
  *  - Manage Orders - Make or Cancel 管理订单
@@ -68,7 +68,7 @@ contract Exchange {
      * return {*}
      */    
     function withdrawEthers(uint _amount) public {
-        require(tokens[ETHER][msg.sender] >= _amount, 'insufficient balances');
+        require(tokens[ETHER][msg.sender] >= _amount, 'Insufficient balances');
         tokens[ETHER][msg.sender] = tokens[ETHER][msg.sender].sub(_amount);
         payable(msg.sender).transfer(_amount);
         emit Withdraw(ETHER, msg.sender, _amount, tokens[ETHER][msg.sender]);
@@ -83,7 +83,7 @@ contract Exchange {
      */
     function depositToken(address _token, uint _amount) public {
         // don't allow Ether deposits
-        require(_token != ETHER, 'do not deposit Ether');
+        require(_token != ETHER, 'Do not deposit Ether');
         // 发送代币到本合约（交易所）
         require(Token(_token).transferFrom(msg.sender, address(this), _amount));
         // 管理存款 -> 更新余额
@@ -92,5 +92,30 @@ contract Exchange {
         emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
     }
 
+    /** 
+     * name: withdrawTokens
+     * desc: Withdraw Tokens
+     * param {address} _token 
+     * param {uint} _amount
+     * return {*}
+     */    
+    function withdrawTokens(address _token, uint _amount) public {
+        require(_token != ETHER, 'Do not withdraw Ether');
+        require(tokens[_token][msg.sender] >= _amount, 'Insufficient balances');
+        tokens[_token][msg.sender] = tokens[_token][msg.sender].sub(_amount);
+        require(Token(_token).transfer(msg.sender, _amount));
+        emit Withdraw(_token, msg.sender, _amount, tokens[_token][msg.sender]);
+    }
+
+    /** 
+     * name: balanceOf
+     * desc: user tokens balance
+     * param {address} _tokenAdr
+     * param {address} _userAdr
+     * return {*}
+     */    
+    function balanceOf(address _tokenAdr, address _userAdr) public view returns (uint) {
+        return tokens[_tokenAdr][_userAdr];
+    }
     
 }

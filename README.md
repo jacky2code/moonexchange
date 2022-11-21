@@ -1112,5 +1112,110 @@
   })
   ```
 
+### 6.5 Withdraw tokens
+
+- withdrawTokens function
+
+  ```solidity
+   /** 
+   * name: withdrawTokens
+   * desc: Withdraw Tokens
+   * param {address} _token 
+   * param {uint} _amount
+   * return {*}
+   */    
+  function withdrawTokens(address _token, uint _amount) public {
+      require(_token != ETHER, 'Do not withdraw Ether');
+      require(tokens[_token][msg.sender] >= _amount, 'Insufficient balances');
+      tokens[_token][msg.sender] = tokens[_token][msg.sender].sub(_amount);
+      require(Token(_token).transfer(msg.sender, _amount));
+      emit Withdraw(_token, msg.sender, _amount, tokens[_token][msg.sender]);
+  }
+  ```
+
+- Describe withdrawing tokens
+
+  ```js
+  // withdraw Ethers test
+  describe('withdrawing tokens', async () => {
+      let result
+      let amount
+  
+      beforeEach(async () => {
+          amount = tokens(10)
+          // Approve tokens
+          await token.approve(exchange.address, amount, {from: user1})
+          // Deposit tokens
+          await exchange.depositToken(token.address, amount, {from: user1})
+      })
+  
+      describe('success', async () => {
+          beforeEach(async () => {
+              // Withdraw tokens
+              result = await exchange.withdrawTokens(token.address, amount, {from: user1})
+          })
+  
+          it('withdraw tokens funds', async () => {
+              const balance = await exchange.tokens(token.address, user1)
+              balance.toString().should.eq('0')
+          })
+  
+          // 发送'存款'事件
+          it('emits a "Withdraw" tokens event', async () => {
+              const log = result.logs[0]
+              log.event.should.eq('Withdraw')
+              const event = log.args
+              event.token.should.eq(token.address, 'ether address is correct')
+              event.user.should.eq(user1, 'user is correct')
+              event.amount.toString().should.eq(amount.toString(), 'amount is correct')
+              event.balance.toString().should.eq('0', 'balance is correct')
+          })
+      })
+  
+      describe('failure', async () => {
+          it('rejects withdraw for insufficient balances', async () => {
+              await exchange.withdrawTokens(token.address, tokens(1000), {from: user1}).should.be.rejectedWith(EVM_REVERT)
+          })
+          it('rejects Ethers withdraw', async () => {
+              await exchange.withdrawTokens(ETHER_ADDRESS, tokens(1000), {from: user1}).should.be.rejectedWith(EVM_REVERT)
+          })
+          
+      })
+      
+  })
+  ```
+
+### 6.6 Check user balance
+
+- balanceOf function
+
+  ```solidity
+  /** 
+   * name: balanceOf
+   * desc: user tokens balance
+   * param {address} _tokenAdr
+   * param {address} _userAdr
+   * return {*}
+   */    
+  function balanceOf(address _tokenAdr, address _userAdr) public view returns (uint) {
+      return tokens[_tokenAdr][_userAdr];
+  }
+  ```
+
+- Describe balanceOf
+
+  ```js
+  describe('check balanceOf', async () => {
+      beforeEach(async () => {
+          await exchange.depositEther({from: user1, value: ethers(1)})
+      })
+  
+      it('tracks user balance', async() => {
+          const result = await exchange.balanceOf(ETHER_ADDRESS, user1)
+          result.toString().should.eq(ethers(1).toString())
+      })
+  })
+  ```
+
   
 
