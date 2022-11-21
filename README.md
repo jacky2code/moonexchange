@@ -1048,5 +1048,69 @@
   })
   ```
 
+### 6.4 Withdraw Ethers
+
+- withdrawEthers function
+
+  ```solidity
+  /** 
+   * name: withdrawEthers
+   * desc: Withdraw Ethers
+   * param {uint} _amount
+   * return {*}
+   */    
+  function withdrawEthers(uint _amount) public {
+      require(tokens[ETHER][msg.sender] >= _amount, 'insufficient balances');
+      tokens[ETHER][msg.sender] = tokens[ETHER][msg.sender].sub(_amount);
+      payable(msg.sender).transfer(_amount);
+      emit Withdraw(ETHER, msg.sender, _amount, tokens[ETHER][msg.sender]);
+  }
+  ```
+
+- Describe withdrawing Ethers
+
+  ```js
+  // withdraw Ethers test
+  describe('withdrawing Ethers', async () => {
+      let result
+      let amount
+  
+      beforeEach(async () => {
+          amount = ethers(1)
+          // Deposit Ethers first
+          await exchange.depositEther({from: user1, value:amount})
+      })
+  
+      describe('success', async () => {
+          beforeEach(async () => {
+              // withdraw Ether
+              result = await exchange.withdrawEthers(amount, {from: user1})
+          })
+  
+          it('withdraw Ether funds', async () => {
+              const balance = await exchange.tokens(ETHER_ADDRESS, user1)
+              balance.toString().should.eq('0')
+          })
+  
+          // 发送'存款'事件
+          it('emits a "Withdraw" ether event', async () => {
+              const log = result.logs[0]
+              log.event.should.eq('Withdraw')
+              const event = log.args
+              event.token.should.eq(ETHER_ADDRESS, 'ether address is correct')
+              event.user.should.eq(user1, 'user is correct')
+              event.amount.toString().should.eq(amount.toString(), 'amount is correct')
+              event.balance.toString().should.eq('0', 'balance is correct')
+          })
+      })
+  
+      describe('failure', async () => {
+          it('rejects withdraw for insufficient balances', async () => {
+              await exchange.withdrawEthers(ethers(1000), {from: user1}).should.be.rejectedWith(EVM_REVERT)
+          })
+      })
+  })
+  ```
+
   
 

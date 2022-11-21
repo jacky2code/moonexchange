@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-19 10:54:40
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-21 17:22:30
+ * @LastEditTime: 2022-11-21 18:17:01
  * @Description: 
  * @TODO: 
  */
@@ -31,7 +31,7 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
 
     })
 
-    // 单元测试部署
+    // deployment test
     describe('deployment', () => {
         // 跟踪 account
         it('tracks the fee account', async () => {
@@ -53,7 +53,7 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
         })
     })
 
-    // 存款eth
+    // deposit Ehter test
     describe('depositing ehters', async () => {
         let amount
         let result
@@ -79,7 +79,7 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
         })
     })
 
-    // 存款单元测试
+    // deposit tokens test
     describe('depositing tokens', () => {
         let result
         let amount
@@ -102,7 +102,7 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
             })
 
             // 发送'存款'事件
-            it('emits a Deposit event', async () => {
+            it('emits a "Deposit" event', async () => {
                 const log = result.logs[0]
                 log.event.should.eq('Deposit')
                 const event = log.args
@@ -123,6 +123,47 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
                 await exchange.depositToken(token.address, tokens(10), {from: user1}).should.be.rejectedWith(EVM_REVERT)
             })
 
+        })
+    })
+
+    // withdraw Ethers test
+    describe('withdrawing Ethers', async () => {
+        let result
+        let amount
+
+        beforeEach(async () => {
+            amount = ethers(1)
+            // Deposit Ethers first
+            await exchange.depositEther({from: user1, value:amount})
+        })
+
+        describe('success', async () => {
+            beforeEach(async () => {
+                // withdraw Ether
+                result = await exchange.withdrawEthers(amount, {from: user1})
+            })
+
+            it('withdraw Ether funds', async () => {
+                const balance = await exchange.tokens(ETHER_ADDRESS, user1)
+                balance.toString().should.eq('0')
+            })
+
+            // 发送'存款'事件
+            it('emits a "Withdraw" ether event', async () => {
+                const log = result.logs[0]
+                log.event.should.eq('Withdraw')
+                const event = log.args
+                event.token.should.eq(ETHER_ADDRESS, 'ether address is correct')
+                event.user.should.eq(user1, 'user is correct')
+                event.amount.toString().should.eq(amount.toString(), 'amount is correct')
+                event.balance.toString().should.eq('0', 'balance is correct')
+            })
+        })
+
+        describe('failure', async () => {
+            it('rejects withdraw for insufficient balances', async () => {
+                await exchange.withdrawEthers(ethers(1000), {from: user1}).should.be.rejectedWith(EVM_REVERT)
+            })
         })
     })
 })
