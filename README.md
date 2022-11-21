@@ -824,7 +824,7 @@
 
 ## 6. Cryptocurrency Exchange Smart Contract
 
-### 6.1 创建合约
+### 6.1 create smart contract
 
 - 新增 Exchange.sol
 
@@ -924,6 +924,127 @@
           })
       })
   
+  })
+  ```
+
+### 6.2 Deposit tokens
+
+- depositToken function
+
+  ```solidity
+  /**
+   * name: depositToken
+   * desc: 存入代币
+   * param {address} _token 代币地址
+   * param {uint} _amount 数量
+   * return {*}
+   */
+  function depositToken(address _token, uint _amount) public {
+      // don't allow Ether deposits
+      require(_token != ETHER);
+      // 发送代币到本合约（交易所）
+      require(Token(_token).transferFrom(msg.sender, address(this), _amount));
+      // 管理存款 -> 更新余额
+      tokens[_token][msg.sender] = tokens[_token][msg.sender].add(_amount);
+      // 发送事件
+      emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
+  }
+  ```
+
+- describe depositing tokens
+
+  ```js
+  // 存款单元测试
+  describe('depositing tokens', () => {
+      let result
+      let amount
+      
+      describe('success', () => {
+          beforeEach(async () => {
+              amount = tokens(10)
+              await token.approve(exchange.address, amount, { from: user1 })
+              result = await exchange.depositToken(token.address, amount, { from: user1 })
+          })
+  
+          it('tracks the token desposit', async () => {
+              let balance
+              // 校验token合约内，交易所下有多少代币
+              balance = await token.balanceOf(exchange.address)
+              balance.toString().should.eq(amount.toString())
+              // 校验exchange合约内，用户有多少代币
+              balance = await exchange.tokens(token.address, user1)
+              balance.toString().should.eq(amount.toString())
+          })
+  
+          // 发送'存款'事件
+          it('emits a Deposit event', async () => {
+              const log = result.logs[0]
+              log.event.should.eq('Deposit')
+              const event = log.args
+              event.token.should.eq(token.address, 'token is correct')
+              event.user.should.eq(user1, 'user is correct')
+              event.amount.toString().should.eq(tokens(10).toString(), 'amount is correct')
+              event.balance.toString().should.eq(tokens(10).toString(), 'balance is correct')
+          })
+  
+      })
+      
+      describe('failure', () => {
+          it('rejects Ehter deposits', async() => {
+              await exchange.depositToken(ETHER_ADDRESS, tokens(10), {from: user1}).should.be.rejectedWith(EVM_REVERT)
+          })
+  
+          it('fails when no tokens are approved', async () => {
+              await exchange.depositToken(token.address, tokens(10), {from: user1}).should.be.rejectedWith(EVM_REVERT)
+          })
+  
+      })
+  })
+  ```
+
+### 6.3 Deposit Ether
+
+- depositEther function
+
+  ```solidity
+  /** 
+   * name: depositEther
+   * desc: 给交易所空白地址发送eth
+   * return {*}
+   */
+  function depositEther() payable public {
+      tokens[ETHER][msg.sender] = tokens[ETHER][msg.sender].add(msg.value);
+      emit Deposit(ETHER, msg.sender, msg.value, tokens[ETHER][msg.sender]);
+  }
+  ```
+
+- Describe depositing Ether
+
+  ```js
+  // 存款eth
+  describe('depositing ehters', async () => {
+      let amount
+      let result
+  
+      beforeEach(async () => {
+          amount = ethers(1)
+          result = await exchange.depositEther({from: user1, value: amount})
+      })
+      it('tracks ether deposits', async () => {
+          const balance = await exchange.tokens(ETHER_ADDRESS, user1)
+          balance.toString().should.eq(amount.toString())
+      })
+  
+      // 发送'存款'事件
+      it('emits a Deposit ether event', async () => {
+          const log = result.logs[0]
+          log.event.should.eq('Deposit')
+          const event = log.args
+          event.token.should.eq(ETHER_ADDRESS, 'ether address is correct')
+          event.user.should.eq(user1, 'user is correct')
+          event.amount.toString().should.eq(amount.toString(), 'amount is correct')
+          event.balance.toString().should.eq(amount.toString(), 'balance is correct')
+      })
   })
   ```
 
