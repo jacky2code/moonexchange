@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-19 10:54:40
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-21 19:02:48
+ * @LastEditTime: 2022-11-22 09:22:22
  * @Description: 
  * @TODO: 
  */
@@ -223,6 +223,45 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
         it('tracks user balance', async() => {
             const result = await exchange.balanceOf(ETHER_ADDRESS, user1)
             result.toString().should.eq(ethers(1).toString())
+        })
+    })
+
+    describe('making orders', async () => {
+        let result
+        let amountToken
+        let amountEth
+        
+        beforeEach(async () => {
+            amountToken = tokens(1)
+            amountEth = ethers(1)
+
+            result = await exchange.createOrder(token.address, amountToken, ETHER_ADDRESS, amountEth, {from: user1})
+        })
+
+        it('tracks the new order', async() => {
+            const orderCount = await exchange.orderCount()
+            orderCount.toString().should.eq('1')
+            const order = await exchange.orders(orderCount.toString())
+            order.id.toString().should.eq('1')
+            order.userAdr.should.eq(user1, 'userAdr is correct')
+            order.tokenGetAdr.should.eq(token.address, 'tokenGetAdr is correct')
+            order.amountGet.toString().should.eq(amountToken.toString(), 'amountGet is correct')
+            order.tokenGiveAdr.toString().should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
+            order.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
+            order.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
+        })
+
+        it('emit an "Order" event', async() => {
+            const log = result.logs[0]
+            log.event.should.eq('Order')
+            const event = log.args
+            event.id.toString().should.eq('1')
+            event.userAdr.should.eq(user1, 'userAdr is correct')
+            event.tokenGetAdr.should.eq(token.address, 'tokenGetAdr is correct')
+            event.amountGet.toString().should.eq(amountToken.toString(), 'amountGet is correct')
+            event.tokenGiveAdr.toString().should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
+            event.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
+            event.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
         })
     })
 

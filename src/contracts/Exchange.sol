@@ -2,7 +2,7 @@
  * Author: GKing
  * Date: 2022-11-19 08:45:25
  * LastEditors: GKing
- * LastEditTime: 2022-11-21 19:07:59
+ * LastEditTime: 2022-11-21 22:42:22
  * Description: 交易所合约
  *  - Deposit & Withdraw Funds 存入提取资金
  *  - Manage Orders - Make or Cancel 管理订单
@@ -34,10 +34,34 @@ contract Exchange {
     address constant ETHER = address(0);
     // 交易所代币账单 关系 token地址 => (用户地址 => 数量)
     mapping(address => mapping(address => uint)) public tokens;
+    mapping(uint => _Order) public orders;
+    // Order ID
+    uint public orderCount;
 
     // 存款事件 (代币地址，用户地址，当次存款数量，余额)
     event Deposit(address token, address user, uint amount, uint balance);
     event Withdraw(address token, address user, uint amount, uint balance);
+    event Order (
+        uint id,
+        address userAdr,
+        address tokenGetAdr,
+        uint amountGet,
+        address tokenGiveAdr,
+        uint amountGive,
+        uint timestamp
+    );
+
+    // Order model
+    struct _Order {
+        uint id;
+        address userAdr;
+        address tokenGetAdr;
+        uint amountGet;
+        address tokenGiveAdr;
+        uint amountGive;
+        uint timestamp;
+    }
+
 
     constructor(address _feeAccount, uint _feePercent) {
         feeAccount = _feeAccount;
@@ -116,6 +140,21 @@ contract Exchange {
      */    
     function balanceOf(address _tokenAdr, address _userAdr) public view returns (uint) {
         return tokens[_tokenAdr][_userAdr];
+    }
+
+    /** 
+     * name: createOrder
+     * desc: Create order
+     * param {address} _tokenGetAdr
+     * param {uint} _amountGet
+     * param {address} _tokenGiveAdr
+     * param {uint} _amountGive
+     * return {*}
+     */    
+    function createOrder(address _tokenGetAdr, uint _amountGet, address _tokenGiveAdr, uint _amountGive) public {
+        orderCount = orderCount.add(1);
+        orders[orderCount] = _Order(orderCount, msg.sender, _tokenGetAdr, _amountGet, _tokenGiveAdr, _amountGive, block.timestamp);
+        emit Order(orderCount, msg.sender, _tokenGetAdr, _amountGet, _tokenGiveAdr, _amountGive, block.timestamp);
     }
     
 }
