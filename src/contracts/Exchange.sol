@@ -2,21 +2,22 @@
  * Author: GKing
  * Date: 2022-11-19 08:45:25
  * LastEditors: GKing
- * LastEditTime: 2022-11-22 10:56:17
+ * LastEditTime: 2022-11-22 12:39:32
  * Description: 交易所合约
  *  - Deposit & Withdraw Funds 存入提取资金
  *  - Manage Orders - Make or Cancel 管理订单
  *  - Handle Trades - Charge fees 交易
  * TODO:
- * [X]Set the fee account
- * [X]Deposit Ether
- * [X]Withdraw Ether
- * [X]Deposit tokens
- * [X]Withdraw tokens
- * [X]Check balances
- * [X]Make order
- * [X]Cancel order
- * []Fill order
+ * [X] Set the fee account
+ * [X] Deposit Ether
+ * [X] Withdraw Ether
+ * [X] Deposit tokens
+ * [X] Withdraw tokens
+ * [X] Check balances
+ * [X] Make order
+ * [X] Cancel order
+ * [] Fill order
+ * [] Charge Fees
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
@@ -36,6 +37,7 @@ contract Exchange {
     mapping(address => mapping(address => uint)) public tokens;
     mapping(uint => _Order) public orders;
     mapping(uint => bool) public ordersCancelled;
+    mapping(uint => bool) public ordersFilled;
     // Order ID
     uint public orderCount;
     
@@ -59,6 +61,16 @@ contract Exchange {
         uint amountGet,
         address tokenGiveAdr,
         uint amountGive,
+        uint timestamp
+    );
+    event Trade (
+        uint id,
+        address userAdr,
+        address tokenGetAdr,
+        uint amountGet,
+        address tokenGiveAdr,
+        uint amountGive,
+        address userFillAdr,
         uint timestamp
     );
 
@@ -148,7 +160,7 @@ contract Exchange {
      * param {address} _tokenAdr
      * param {address} _userAdr
      * return {*}
-     */    
+     */
     function balanceOf(address _tokenAdr, address _userAdr) public view returns (uint) {
         return tokens[_tokenAdr][_userAdr];
     }
@@ -180,6 +192,40 @@ contract Exchange {
         require(_order.id == _id, 'wrong order id');
         ordersCancelled[_id] = true;
         emit Cancel(_order.id, msg.sender, _order.tokenGetAdr, _order.amountGet, _order.tokenGiveAdr, _order.amountGive, block.timestamp);
+    }
+
+    /** 
+     * name: fillOrder
+     * desc: Fill order with id
+     * param {uint} _id
+     * return {*}
+     */  
+    function fillOrder(uint _id) public {
+        require(_id > 0 && _id <= orderCount, 'invalid order id');
+        require(!ordersFilled[_id], 'order already filled');
+        require(!ordersCancelled[_id], 'order already cancelled');
+        // Fetch the Order
+        _Order storage _order = orders[_id];
+        _trade(_order.id, _order.userAdr, _order.tokenGetAdr, _order.amountGet, _order.tokenGiveAdr, _order.amountGive);
+        // Mark order as filled
+        ordersFilled[_id] = true;
+    }
+
+    function _trade(uint _orderId, address _userAdr, address _tokenGetAdr, uint _amountGet, address _tokenGiveAdr, uint _amountGive) internal {
+        // Fee paid by the user that fills the order, a.k.a. msg.sender.
+        // Fee deducted from _amountGet
+        uint _feeAmount = _amountGive.mul(feePercent).div(100);
+        
+        // Exchange Trade
+        tokens[_tokenGetAdr][msg.sender] = tokens[_tokenGetAdr][msg.sender].sub(_amountGet.add(_feeAmount));
+        tokens[_tokenGetAdr][_userAdr] = tokens[_tokenGetAdr][_userAdr].add(_amountGet);
+        // Charge fees
+        tokens[_tokenGetAdr][feeAccount] = tokens[_tokenGetAdr][feeAccount].add(_feeAmount);
+        tokens[_tokenGiveAdr][_userAdr] = tokens[_tokenGiveAdr][_userAdr].sub(_amountGive);
+        tokens[_tokenGiveAdr][msg.sender] = tokens[_tokenGiveAdr][msg.sender].add(_amountGive);
+        
+        // Emit trade event
+        emit Trade(_orderId, _userAdr, _tokenGetAdr, _amountGet, _tokenGiveAdr, _amountGive, msg.sender, block.timestamp);
     }
     
 }

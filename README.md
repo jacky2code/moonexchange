@@ -1312,6 +1312,12 @@
 
 ### 6.8 Cancel orders
 
+- Cancelled order mapping
+
+  ```solidity
+  mapping(uint => bool) public ordersCancelled;
+  ```
+
 - Cancel event
 
   ```solidity
@@ -1386,5 +1392,266 @@
   })
   ```
 
+### 6.9 Fill orders
+
+- Filled orders mapping
+
+  ```solidity
+  mapping(uint => bool) public ordersFilled;
+  ```
+
+- Trade event
+
+  ```solidity
+  event Trade (
+      uint id,
+      address userAdr,
+      address tokenGetAdr,
+      uint amountGet,
+      address tokenGiveAdr,
+      uint amountGive,
+      address userFillAdr,
+      uint timestamp
+  );
+  ```
+
+- fillOrder function
+
+  ```solidity
+  /** 
+   * name: fillOrder
+   * desc: Fill order with id
+   * param {uint} _id
+   * return {*}
+   */  
+  function fillOrder(uint _id) public {
+      require(_id > 0 && _id <= orderCount, 'invalid order id');
+      require(!ordersFilled[_id], 'order already filled');
+      require(!ordersCancelled[_id], 'order already cancelled');
+      // Fetch the Order
+      _Order storage _order = orders[_id];
+      _trade(_order.id, _order.userAdr, _order.tokenGetAdr, _order.amountGet, _order.tokenGiveAdr, _order.amountGive);
+      // Mark order as filled
+      ordersFilled[_id] = true;
+  }
   
+  function _trade(uint _orderId, address _userAdr, address _tokenGetAdr, uint _amountGet, address _tokenGiveAdr, uint _amountGive) internal {
+      // Fee paid by the user that fills the order, a.k.a. msg.sender.
+      // Fee deducted from _amountGet
+      uint _feeAmount = _amountGive.mul(feePercent).div(100);
+      
+      // Exchange Trade
+      tokens[_tokenGetAdr][msg.sender] = tokens[_tokenGetAdr][msg.sender].sub(_amountGet.add(_feeAmount));
+      tokens[_tokenGetAdr][_userAdr] = tokens[_tokenGetAdr][_userAdr].add(_amountGet);
+      // Charge fees
+      tokens[_tokenGetAdr][feeAccount] = tokens[_tokenGetAdr][feeAccount].add(_feeAmount);
+      tokens[_tokenGiveAdr][_userAdr] = tokens[_tokenGiveAdr][_userAdr].sub(_amountGive);
+      tokens[_tokenGiveAdr][msg.sender] = tokens[_tokenGiveAdr][msg.sender].add(_amountGive);
+      
+      // Emit trade event
+      emit Trade(_orderId, _userAdr, _tokenGetAdr, _amountGet, _tokenGiveAdr, _amountGive, msg.sender, block.timestamp);
+  }
+  ```
+
+- Describe fill orders
+
+  ```js
+  describe('order actions', async () => {
+      let amountToken
+      let amountEth
+  
+      beforeEach(async () => {
+          amountToken = tokens(1)
+          amountEth = ethers(1)
+          // user1 deposits ether only
+          await exchange.depositEther({from: user1, value: amountEth})
+          // give token to user2
+          await token.transfer(user2, tokens(100), {from: deployer})
+          // user2 deposit tokens only
+          await token.approve(exchange.address, tokens(2), {from: user2})
+          await exchange.depositToken(token.address, tokens(2), {from: user2})
+          // user1 makes an order to buy tokens with Ether
+          await exchange.createOrder(token.address, amountToken, ETHER_ADDRESS, amountEth, {from: user1})
+      })
+  
+      describe('filling order', async () => {
+          let result
+          describe('success', async () => {
+              beforeEach(async () => {
+                  // user2 fills order
+                  result = await exchange.fillOrder(1, {from: user2})
+              })
+  
+              it('executes the trade & charge fees', async () => {
+                  let balance
+                  balance = await exchange.balanceOf(token.address, user1)
+                  balance.toString().should.eq(amountToken.toString(), 'user1 received tokens')
+                  balance = await exchange.balanceOf(ETHER_ADDRESS, user2)
+                  balance.toString().should.eq(amountEth.toString(), 'user2 received Ether')
+                  balance = await exchange.balanceOf(ETHER_ADDRESS, user1)
+                  balance.toString().should.eq('0', 'user1 usee 1 Ether, has no Ether')
+                  balance = await exchange.balanceOf(token.address, user2)
+                  balance.toString().should.eq(tokens(0.9).toString(), 'user2 tokens deducted with fee applied')
+                  const feeAccount = await exchange.feeAccount()
+                  balance = await exchange.balanceOf(token.address, feeAccount)
+                  balance.toString().should.eq(tokens(0.1).toString(), 'feeAccount received fee')
+              })
+  
+              it('update filled order', async () => {
+                  const orderFilled = await exchange.ordersFilled(1)
+                  orderFilled.should.eq(true)
+              })
+  
+              it('emit an "Trade" event', async() => {
+                  const log = result.logs[0]
+                  log.event.should.eq('Trade')
+                  const event = log.args
+                  event.id.toString().should.eq('1', 'id is correct')
+                  event.userAdr.should.eq(user1, 'userAdr is correct')
+                  event.tokenGetAdr.should.eq(token.address, 'tokenGetAdr is correct')
+                  event.amountGet.toString().should.eq(amountToken.toString(), 'amountGet is correct')
+                  event.tokenGiveAdr.should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
+                  event.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
+                  event.userFillAdr.should.eq(user2, 'userFillAdr is correct')
+                  event.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
+              })
+  
+          })
+          describe('failure', async () => {
+              it('reject invalid id', async () => {
+                  const invalidId = 9999
+                  await exchange.cancelOrder(invalidId, {from: user2}).should.be.rejectedWith(EVM_REVERT)
+              })
+  
+              it('reject already filled order', async () => {
+                  // Fill the order
+                  await exchange.fillOrder(1, {from: user2}).should.be.fulfilled
+                  // Try to file again
+                  await exchange.fillOrder(1, {from: user2}).should.be.rejectedWith(EVM_REVERT)
+              })
+  
+              it('reject cancelled order', async () => {
+                  // Cancel the order
+                  await exchange.cancelOrder(1, {from: user1}).should.be.fulfilled
+                  // Try to fill the order
+                  await exchange.fillOrder(1, {from: user2}).should.be.rejectedWith(EVM_REVERT)
+              })
+  
+          })
+      })
+  
+      describe('cancelling order', async () => {
+          let result
+  
+          describe('success', async () => {
+              beforeEach(async () => {
+                  result = await exchange.cancelOrder(1, {from: user1})
+              })
+              it('update cancelled order', async () => {
+                  const orderCancelled = await exchange.ordersCancelled(1)
+                  orderCancelled.should.eq(true)
+              })
+              it('emit an "Cancel" event', async() => {
+                  const log = result.logs[0]
+                  log.event.should.eq('Cancel')
+                  const event = log.args
+                  event.id.toString().should.eq('1', 'id is correct')
+                  event.userAdr.should.eq(user1, 'userAdr is correct')
+                  event.tokenGetAdr.should.eq(token.address, 'tokenGetAdr is correct')
+                  event.amountGet.toString().should.eq(amountToken.toString(), 'amountGet is correct')
+                  event.tokenGiveAdr.should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
+                  event.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
+                  event.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
+              })
+              
+  
+          })
+          describe('failure', async () => {
+              it('reject invalid id', async () => {
+                  const invalidId = 9999
+                  await exchange.cancelOrder(invalidId, {from: user1}).should.be.rejectedWith(EVM_REVERT)
+              })
+              it('reject other user cancel my order', async () => {
+                  await exchange.cancelOrder(1, {from: user2}).should.be.rejectedWith(EVM_REVERT)
+              })
+              
+          })
+      })
+  })
+  ```
+
+  
+
+### 6.10 All test output
+
+```bash
+Using network 'development'.
+
+
+Compiling your contracts...
+===========================
+> Compiling ./src/contracts/Exchange.sol
+> Compiling ./src/contracts/Token.sol
+> Compiling @openzeppelin/contracts/token/ERC20/IERC20.sol
+> Compiling @openzeppelin/contracts/utils/math/SafeMath.sol
+> Artifacts written to /var/folders/84/d1j8r9m90rggg4b5vrwhck_m0000gn/T/test--76618-aougZTkMAEDU
+> Compiled successfully using:
+   - solc: 0.8.17+commit.8df45f5f.Emscripten.clang
+
+
+  Contract: Exchange
+    deployment
+      ✔ tracks the fee account (112ms)
+      ✔ tracks the fee feePercent (101ms)
+    fallback
+      ✔ revert when ether is sent (778ms)
+    depositing ehters
+      ✔ tracks ether deposits (111ms)
+      ✔ emits a Deposit ether event
+    depositing tokens
+      success
+        ✔ tracks the token desposit (93ms)
+        ✔ emits a "Deposit" event
+      failure
+        ✔ rejects Ehter deposits (59ms)
+        ✔ fails when no tokens are approved (40ms)
+    withdrawing Ethers
+      success
+        ✔ withdraw Ether funds
+        ✔ emits a "Withdraw" ether event
+      failure
+        ✔ rejects withdraw for insufficient balances (159ms)
+    withdrawing tokens
+      success
+        ✔ withdraw tokens funds (55ms)
+        ✔ emits a "Withdraw" tokens event
+      failure
+        ✔ rejects withdraw for insufficient balances (296ms)
+        ✔ rejects Ethers withdraw (119ms)
+    check balance
+      ✔ tracks user balance (68ms)
+    making orders
+      ✔ tracks the new order (153ms)
+      ✔ emit an "Order" event
+    order actions
+      filling order
+        success
+          ✔ executes the trade & charge fees (255ms)
+          ✔ update filled order (41ms)
+          ✔ emit an "Trade" event
+        failure
+          ✔ reject invalid id (67ms)
+          ✔ reject already filled order (683ms)
+          ✔ reject cancelled order (240ms)
+      cancelling order
+        success
+          ✔ update cancelled order
+          ✔ emit an "Cancel" event
+        failure
+          ✔ reject invalid id (157ms)
+          ✔ reject other user cancel my order (213ms)
+
+
+  29 passing (58s)
+```
 
