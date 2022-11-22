@@ -1217,7 +1217,36 @@
   })
   ```
 
-### 6.7 Create order 
+### 6.7 Create orders
+
+- order model
+
+  ```solidity
+  // Order model
+  struct _Order {
+      uint id;
+      address userAdr;
+      address tokenGetAdr;
+      uint amountGet;
+      address tokenGiveAdr;
+      uint amountGive;
+      uint timestamp;
+  }
+  ```
+
+- Order event
+
+  ```solidity
+  event Order (
+      uint id,
+      address userAdr,
+      address tokenGetAdr,
+      uint amountGet,
+      address tokenGiveAdr,
+      uint amountGive,
+      uint timestamp
+  );
+  ```
 
 - createOrder function
 
@@ -1277,6 +1306,82 @@
           event.tokenGiveAdr.toString().should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
           event.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
           event.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
+      })
+  })
+  ```
+
+### 6.8 Cancel orders
+
+- Cancel event
+
+  ```solidity
+  event Cancel (
+      uint id,
+      address userAdr,
+      address tokenGetAdr,
+      uint amountGet,
+      address tokenGiveAdr,
+      uint amountGive,
+      uint timestamp
+  );
+  ```
+
+- cancelOrder function
+
+  ```solidity
+  /** 
+   * name: cancelOrder
+   * desc: Cancel order with order id
+   * param {uint} _id
+   * return {*}
+   */
+  function cancelOrder(uint _id) public {
+      _Order storage _order = orders[_id];
+      require(_order.userAdr == msg.sender, 'not your order');
+      require(_order.id == _id, 'wrong order id');
+      ordersCancelled[_id] = true;
+      emit Cancel(_order.id, msg.sender, _order.tokenGetAdr, _order.amountGet, _order.tokenGiveAdr, _order.amountGive, block.timestamp);
+  }
+  ```
+
+- Describe cancelling orders
+
+  ```js
+  describe('cancelling order', async () => {
+      let result
+  
+      describe('success', async () => {
+          beforeEach(async () => {
+              result = await exchange.cancelOrder(1, {from: user1})
+          })
+          it('update cancelled order', async () => {
+              const orderCancelled = await exchange.ordersCancelled(1)
+              orderCancelled.should.eq(true)
+          })
+          it('emit an "Cancel" event', async() => {
+              const log = result.logs[0]
+              log.event.should.eq('Cancel')
+              const event = log.args
+              event.id.toString().should.eq('1', 'id is correct')
+              event.userAdr.should.eq(user1, 'userAdr is correct')
+              event.tokenGetAdr.should.eq(token.address, 'tokenGetAdr is correct')
+              event.amountGet.toString().should.eq(amountToken.toString(), 'amountGet is correct')
+              event.tokenGiveAdr.toString().should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
+              event.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
+              event.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
+          })
+          
+  
+      })
+      describe('failure', async () => {
+          it('tacks invalid id', async () => {
+              const invalidId = 9999
+              await exchange.cancelOrder(invalidId, {from: user1}).should.be.rejectedWith(EVM_REVERT)
+          })
+          it('tacks other user cancel my order', async () => {
+              await exchange.cancelOrder(1, {from: user2}).should.be.rejectedWith(EVM_REVERT)
+          })
+          
       })
   })
   ```

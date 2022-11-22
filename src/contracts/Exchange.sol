@@ -2,7 +2,7 @@
  * Author: GKing
  * Date: 2022-11-19 08:45:25
  * LastEditors: GKing
- * LastEditTime: 2022-11-21 22:42:22
+ * LastEditTime: 2022-11-22 10:56:17
  * Description: 交易所合约
  *  - Deposit & Withdraw Funds 存入提取资金
  *  - Manage Orders - Make or Cancel 管理订单
@@ -10,12 +10,12 @@
  * TODO:
  * [X]Set the fee account
  * [X]Deposit Ether
- * []Withdraw Ether
+ * [X]Withdraw Ether
  * [X]Deposit tokens
- * []Withdraw tokens
- * []Check balances
- * []Make order
- * []Cancel order
+ * [X]Withdraw tokens
+ * [X]Check balances
+ * [X]Make order
+ * [X]Cancel order
  * []Fill order
  */
 // SPDX-License-Identifier: MIT
@@ -35,13 +35,24 @@ contract Exchange {
     // 交易所代币账单 关系 token地址 => (用户地址 => 数量)
     mapping(address => mapping(address => uint)) public tokens;
     mapping(uint => _Order) public orders;
+    mapping(uint => bool) public ordersCancelled;
     // Order ID
     uint public orderCount;
+    
 
     // 存款事件 (代币地址，用户地址，当次存款数量，余额)
     event Deposit(address token, address user, uint amount, uint balance);
     event Withdraw(address token, address user, uint amount, uint balance);
     event Order (
+        uint id,
+        address userAdr,
+        address tokenGetAdr,
+        uint amountGet,
+        address tokenGiveAdr,
+        uint amountGive,
+        uint timestamp
+    );
+    event Cancel (
         uint id,
         address userAdr,
         address tokenGetAdr,
@@ -150,11 +161,25 @@ contract Exchange {
      * param {address} _tokenGiveAdr
      * param {uint} _amountGive
      * return {*}
-     */    
+     */
     function createOrder(address _tokenGetAdr, uint _amountGet, address _tokenGiveAdr, uint _amountGive) public {
         orderCount = orderCount.add(1);
         orders[orderCount] = _Order(orderCount, msg.sender, _tokenGetAdr, _amountGet, _tokenGiveAdr, _amountGive, block.timestamp);
         emit Order(orderCount, msg.sender, _tokenGetAdr, _amountGet, _tokenGiveAdr, _amountGive, block.timestamp);
+    }
+
+    /** 
+     * name: cancelOrder
+     * desc: Cancel order with order id
+     * param {uint} _id
+     * return {*}
+     */
+    function cancelOrder(uint _id) public {
+        _Order storage _order = orders[_id];
+        require(_order.userAdr == msg.sender, 'not your order');
+        require(_order.id == _id, 'wrong order id');
+        ordersCancelled[_id] = true;
+        emit Cancel(_order.id, msg.sender, _order.tokenGetAdr, _order.amountGet, _order.tokenGiveAdr, _order.amountGive, block.timestamp);
     }
     
 }

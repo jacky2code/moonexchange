@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-19 10:54:40
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-22 09:22:22
+ * @LastEditTime: 2022-11-22 10:54:56
  * @Description: 
  * @TODO: 
  */
@@ -16,7 +16,7 @@ require('chai')
     .should()
 
 // 合同函数
-contract('Exchange', ([deployer, feeAccount, user1]) => {
+contract('Exchange', ([deployer, feeAccount, user1, user2]) => {
     let token
     let exchange
     const feePercent = 10
@@ -265,5 +265,55 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
         })
     })
 
+    describe('order actions', async () => {
+        let amountToken
+        let amountEth
+
+        beforeEach(async () => {
+            amountToken = tokens(1)
+            amountEth = ethers(1)
+            // user1 deposit 1 ehter
+            await exchange.depositEther({from: user1, value: amountEth})
+            await exchange.createOrder(token.address, amountToken, ETHER_ADDRESS, amountEth, {from: user1})
+        })
+
+        describe('cancelling order', async () => {
+            let result
+
+            describe('success', async () => {
+                beforeEach(async () => {
+                    result = await exchange.cancelOrder(1, {from: user1})
+                })
+                it('update cancelled order', async () => {
+                    const orderCancelled = await exchange.ordersCancelled(1)
+                    orderCancelled.should.eq(true)
+                })
+                it('emit an "Cancel" event', async() => {
+                    const log = result.logs[0]
+                    log.event.should.eq('Cancel')
+                    const event = log.args
+                    event.id.toString().should.eq('1', 'id is correct')
+                    event.userAdr.should.eq(user1, 'userAdr is correct')
+                    event.tokenGetAdr.should.eq(token.address, 'tokenGetAdr is correct')
+                    event.amountGet.toString().should.eq(amountToken.toString(), 'amountGet is correct')
+                    event.tokenGiveAdr.toString().should.eq(ETHER_ADDRESS, 'tokenGiveAdr is correct')
+                    event.amountGive.toString().should.eq(amountEth.toString(), 'amountGive is correct')
+                    event.timestamp.toString().length.should.be.at.least(1, 'timestamp is correct')
+                })
+                
+
+            })
+            describe('failure', async () => {
+                it('tacks invalid id', async () => {
+                    const invalidId = 9999
+                    await exchange.cancelOrder(invalidId, {from: user1}).should.be.rejectedWith(EVM_REVERT)
+                })
+                it('tacks other user cancel my order', async () => {
+                    await exchange.cancelOrder(1, {from: user2}).should.be.rejectedWith(EVM_REVERT)
+                })
+                
+            })
+        })
+    })
 
 })
