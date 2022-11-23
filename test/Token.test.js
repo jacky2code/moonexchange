@@ -2,12 +2,12 @@
  * Author: GKing
  * Date: 2022-11-15 22:19:58
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-18 22:08:31
+ * @LastEditTime: 2022-11-22 21:37:37
  * Description: 
  */
 import { tokens, EVM_REVERT } from './Helpers'
 
-const Token = artifacts.require('./Token')
+const Token = artifacts.require('Token')
 
 require('chai')
     .use(require('chai-as-promised'))

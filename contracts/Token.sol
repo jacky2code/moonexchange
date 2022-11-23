@@ -2,14 +2,14 @@
  * Author: GKing
  * Date: 2022-11-15 22:19:58
  * LastEditors: GKing
- * LastEditTime: 2022-11-19 14:56:21
+ * LastEditTime: 2022-11-22 21:41:36
  * Description: 代币合约
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Token is IERC20 {
     using SafeMath for uint256;

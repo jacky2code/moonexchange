@@ -1655,3 +1655,64 @@ Compiling your contracts...
   29 passing (58s)
 ```
 
+
+
+## 7. Deploy Contracts
+
+### 7.1 Migration
+
+- create 1_Token.js file in migrations folder
+
+  ```js
+  const Token = artifacts.require('Token');
+  
+  module.exports = async function(deployer) {
+      await deployer.deploy(Token);
+  };
+  ```
+  
+- Create 2_Exchange.js file in migrations folder
+
+  ```js
+  const Exchange = artifacts.require('Exchange');
+  
+  module.exports = async function(deployer) {
+      const accounts = await web3.eth.getAccounts();
+      const feeAccount = accounts[0];
+      const feePercent = 10;
+      await deployer.deploy(Exchange, feeAccount, feePercent);
+  };
+  ```
+  
+- Ganache line the project
+
+  CONTRACTS -> LINK PROJECT -> ADD PROJECT -> find the 'truffle-config.js' file in project
+  
+  <img src="https://markdown-res.oss-cn-hangzhou.aliyuncs.com/mdImgs/2022/11/23/20221123101414.png" alt="image-20221123101358854" style="zoom:50%;" />
+  
+- Migrate contracts
+
+  ```bash
+  sudo truffle migrate --reset
+  ```
+
+### 7.2 Fill Exchange orders or other datas
+
+- Create folder "scripts" and create "seed-exchange.js" file
+
+  ```js
+  module.exports = async function(callback) {
+  
+      console.log('script "seed-exchange" is running ...')
+  
+      callback()
+  }
+  ```
+
+- truffle exec the file
+
+  ```bash
+  truffle exec ./scripts/seed-exchange.js
+  ```
+
+  

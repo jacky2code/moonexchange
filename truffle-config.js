@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-15 20:20:56
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-15 23:06:50
+ * @LastEditTime: 2022-11-22 21:29:03
  * @Description: 
  */
 require('babel-register');
@@ -11,6 +11,10 @@ require('dotenv').config();
 
 
 module.exports = {
+  
+  contracts_directory: './contracts',
+  contracts_build_directory: './abis',
+  migrations_directory: "./migrations",
 
   networks: {
     development: {
@@ -20,8 +24,7 @@ module.exports = {
     },
   },
 
-  contracts_directory: './src/contracts',
-  contracts_build_directory: './src/abis/',
+  
 
   // Set default mocha options here, use special reporters, etc.
   mocha: {

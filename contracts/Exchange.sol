@@ -2,7 +2,7 @@
  * Author: GKing
  * Date: 2022-11-19 08:45:25
  * LastEditors: GKing
- * LastEditTime: 2022-11-22 12:39:32
+ * LastEditTime: 2022-11-22 22:37:00
  * Description: 交易所合约
  *  - Deposit & Withdraw Funds 存入提取资金
  *  - Manage Orders - Make or Cancel 管理订单
@@ -16,11 +16,12 @@
  * [X] Check balances
  * [X] Make order
  * [X] Cancel order
- * [] Fill order
- * [] Charge Fees
+ * [X] Fill order
+ * [X] Charge Fees
  */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
+
 import "./Token.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
