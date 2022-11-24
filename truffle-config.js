@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-15 20:20:56
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-22 21:29:03
+ * @LastEditTime: 2022-11-24 23:05:34
  * @Description: 
  */
 require('babel-register');
@@ -12,8 +12,8 @@ require('dotenv').config();
 
 module.exports = {
   
-  contracts_directory: './contracts',
-  contracts_build_directory: './abis',
+  contracts_directory: './src/contracts',
+  contracts_build_directory: './src/abis',
   migrations_directory: "./migrations",
 
   networks: {

@@ -1,6 +1,14 @@
+/**
+ * @Author: GKing
+ * @Date: 2022-11-15 18:11:15
+ * @LastEditors: GKing
+ * @LastEditTime: 2022-11-24 23:00:47
+ * @Description: 
+ * @TODO: 
+ */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import 'bootstrap/dist/css/bootstrap.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
