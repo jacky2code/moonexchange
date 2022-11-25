@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 20:42:01
+ * @LastEditTime: 2022-11-25 21:49:07
  * @Description: 
  * @TODO: 
  */
@@ -34,7 +34,7 @@ function web3(state = {}, action) {
 function token(state = {}, action) {
   switch(action.type) {
     case 'TOKEN_LOADED':
-      return { ...state, contract: action.contract }
+      return { ...state, loaded: true, contract: action.contract }
     default:
       return state
   }
@@ -43,7 +43,7 @@ function token(state = {}, action) {
 function exchange(state = {}, action) {
   switch(action.type) {
     case 'EXCHANGE_LOADED':
-      return { ...state, contract: action.contract }
+      return { ...state, loaded: true, contract: action.contract }
     default:
       return state
   }

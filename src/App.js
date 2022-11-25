@@ -2,19 +2,21 @@
  * @Author: GKing
  * @Date: 2022-11-15 18:11:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 20:33:30
+ * @LastEditTime: 2022-11-25 22:04:00
  * @Description: 
  */
- import React, { Component } from 'react'
- import './App.css'
- import Web3 from 'web3'
- import { connect } from 'react-redux'
- import { loadWeb3, loadAccount, loadToken, loadExchange } from './redux/interaction'
+import React, { Component } from 'react'
+import './App.css'
+import Navbar from './components/Navbar'
+import Content from './components/Content'
+import { connect } from 'react-redux'
+import { loadWeb3, loadAccount, loadToken, loadExchange } from './redux/interaction'
+import { contractsLoadedSelector } from './redux/selectors'
 //  import { useDispatch } from 'react-redux'
- 
- class App extends Component {
-  
-  UNSAFE_componentWillMount(){
+
+class App extends Component {
+
+  UNSAFE_componentWillMount() {
     this.loaadBlockchainData(this.props.dispatch);
   }
   async loaadBlockchainData(dispatch) {
@@ -27,96 +29,35 @@
     // const abi = Token.abi;
     // const tokenAdr = Token.networks[networkId].address;
     const token = await loadToken(web3, networkId, dispatch)
+    if (!token) {
+      window.alert('Token contract not deployed to current network. Please select another network with matemask')
+      return
+    }
     // const totalSupply = await token.methods.totalSupply().call();
     // console.log('totalSupply', totalSupply);
 
     const exchange = await loadExchange(web3, networkId, dispatch)
+    if (!exchange) {
+      window.alert('Exchange contract not deployed to current network. Please select another network with matemask')
+      return
+    }
   }
 
+  render() {
+    console.log(this.props.account)
+    return (
+      <div>
+        <Navbar />
+        { this.props.contractsLoaded ? <Content /> : <div className='content'></div> }
+      </div>
+    )
+  }
+}
 
-   render() {
-     return (
-       <div>
- 
-         <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-           <a href="localhost:3000" className="navbar-brand">Navbar</a>
-           <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" > {/* 这里少了点 prop */}
-             <span className="navbar-toggler-icon"></span>
-           </button>
-           <div className="collapse navbar-collapse" id="navbarNavDropdown">
-             <ul className="navbar-nav">
-               <li className="nav-item"> <a href="localhost:3000" className="nav-link">Link 1</a> </li>
-               <li className="nav-item"> <a href="localhost:3000" className="nav-link">Link 2</a> </li>
-               <li className="nav-item"> <a href="localhost:3000" className="nav-link">Link 3</a> </li>
-             </ul>
-           </div>
-         </nav>
- 
-         <div className="content">
- 
-           <div className="vertical-split">
-             <div className="card bg-dark text-white">
-               <div className="card-header">Card Title</div>
-               <div className="card-body">
-                 <p className="card-text">Some quick example text</p>
-                 <a href="localhost:3000" className="card-link">Card link</a>
-               </div>
-             </div>
-             <div className="card bg-dark text-white">
-               <div className="card-header">Card Title</div>
-               <div className="card-body">
-                 <p className="card-text">Some quick example text</p>
-                 <a href="localhost:3000" className="card-link">Card link</a>
-               </div>
-             </div>
-           </div>
- 
-           <div className="vertical">
-             <div className="card bg-dark text-white">
-               <div className="card-header">Card Title</div>
-               <div className="card-body">
-                 <p className="card-text">Some quick example text</p>
-                 <a href="localhost:3000" className="card-link">Card link</a>
-               </div>
-             </div>
-           </div>
- 
-           <div className="vertical-split">
-             <div className="card bg-dark text-white">
-               <div className="card-header">Card Title</div>
-               <div className="card-body">
-                 <p className="card-text">Some quick example text</p>
-                 <a href="localhost:3000" className="card-link">Card link</a>
-               </div>
-             </div>
-             <div className="card bg-dark text-white">
-               <div className="card-header">Card Title</div>
-               <div className="card-body">
-                 <p className="card-text">Some quick example text</p>
-                 <a href="localhost:3000" className="card-link">Card link</a>
-               </div>
-             </div>
-           </div>
- 
-           <div className="vertical">
-             <div className="card bg-dark text-white">
-               <div className="card-header">Card Title</div>
-               <div className="card-body">
-                 <p className="card-text">Some quick example text</p>
-                 <a href="localhost:3000" className="card-link">Card link</a>
-               </div>
-             </div>
-           </div>
- 
-         </div>
- 
-       </div>
-     )
-   }
- }
- 
- function mapStateToProps(state) {
-  return {}
- }
+function mapStateToProps(state) {
+  return {
+    contractsLoaded: contractsLoadedSelector(state)
+  }
+}
 
- export default connect(mapStateToProps)(App);
+export default connect(mapStateToProps)(App);

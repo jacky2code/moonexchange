@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 20:31:54
+ * @LastEditTime: 2022-11-25 22:04:18
  * @Description: 
  * @TODO: 
  */
@@ -41,7 +41,7 @@ export const loadToken = async (web3, networkId, dispatch) => {
 
         return token
     } catch (error) {
-        window.alert('Token contract not deployed to current network. Please select another network with matemask')
+        console.log('Token contract not deployed to current network. Please select another network with matemask')
         return null
     }
 }
@@ -54,7 +54,7 @@ export const loadExchange = async (web3, networkId, dispatch) => {
 
         return exchange
     } catch (error) {
-        window.alert('Token contract not deployed to current network. Please select another network with matemask')
+        console.log('Exchange contract not deployed to current network. Please select another network with matemask')
         return null
     }
 }

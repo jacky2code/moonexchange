@@ -1919,13 +1919,19 @@ Compiling your contracts...
     }
   ```
 
-- redux
+## 9. redux
 
-  Add files
+- Add redux folder and files
 
   - configureStore.js
+
   - Reducers.js
+
   - actions.js
+
   - Interaction.js
 
+- Add selectors.js
+
   
+
