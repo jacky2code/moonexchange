@@ -2,28 +2,35 @@
  * @Author: GKing
  * @Date: 2022-11-15 18:11:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-24 23:26:04
+ * @LastEditTime: 2022-11-25 20:33:30
  * @Description: 
  */
  import React, { Component } from 'react'
  import './App.css'
  import Web3 from 'web3'
- import Token from './abis/Token.json'
+ import { connect } from 'react-redux'
+ import { loadWeb3, loadAccount, loadToken, loadExchange } from './redux/interaction'
+//  import { useDispatch } from 'react-redux'
  
  class App extends Component {
+  
   UNSAFE_componentWillMount(){
-    this.loaadBlockchainData();
+    this.loaadBlockchainData(this.props.dispatch);
   }
-  async loaadBlockchainData() {
-    var web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
-    const network = await web3.eth.net.getNetworkType();
+  async loaadBlockchainData(dispatch) {
+    // const dispatch = useDispatch()
+
+    const web3 = loadWeb3(dispatch)
+    // const network = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const accounts = await web3.eth.getAccounts();
-    const abi = Token.abi;
-    const tokenAdr = Token.networks[networkId].address;
-    const token = new web3.eth.Contract(abi, tokenAdr);
-    const totalSupply = await token.methods.totalSupply().call();
-    console.log('totalSupply', totalSupply);
+    const accounts = await loadAccount(web3, dispatch);
+    // const abi = Token.abi;
+    // const tokenAdr = Token.networks[networkId].address;
+    const token = await loadToken(web3, networkId, dispatch)
+    // const totalSupply = await token.methods.totalSupply().call();
+    // console.log('totalSupply', totalSupply);
+
+    const exchange = await loadExchange(web3, networkId, dispatch)
   }
 
 
@@ -108,4 +115,8 @@
    }
  }
  
- export default App
+ function mapStateToProps(state) {
+  return {}
+ }
+
+ export default connect(mapStateToProps)(App);
