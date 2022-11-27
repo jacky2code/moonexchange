@@ -3,7 +3,7 @@
  * @Author: GKing
  * @Date: 2022-11-23 10:19:23
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-23 14:38:48
+ * @LastEditTime: 2022-11-27 19:34:43
  * @Description: fill Exchange orders or other datas
  * @TODO: 
  */
@@ -129,14 +129,14 @@ module.exports = async function(callback) {
 
         // Seed open orders
         // User1 makes 10 orders
-        for (let i = 0; i < 10; i++) {
+        for (let i = 1; i < 10; i++) {
             result = await exchange.createOrder(token.address, tokens(10 * i), ETHER_ADDRESS, ethers(0.01), {from: user1});
             console.log(`Made order from ${user1}`);
             await wait(1);
         }
         
         // User2 makes 10 orders
-        for (let i = 0; i < 10; i++) {
+        for (let i = 1; i < 10; i++) {
             result = await exchange.createOrder(ETHER_ADDRESS, ethers(0.01), token.address, tokens(10 * i), {from: user2});
             console.log(`Made order from ${user2}`);
             await wait(1);

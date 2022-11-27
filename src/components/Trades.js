@@ -2,15 +2,15 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 15:40:12
+ * @LastEditTime: 2022-11-27 19:28:40
  * @Description: 
  * @TODO: 
  */
+
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { filledOrdersLoadedSelector, filledOrdersSelector } from '../redux/selectors'
 import Spinner from './Spinner'
-
 
 const showFilledOrders = (filledOrders) => {
     return (
@@ -26,18 +26,15 @@ const showFilledOrders = (filledOrders) => {
             })}
         </tbody>
     )
-
 }
 
 class Trades extends Component {
-
-
     render() {
         return (
             <div className="vertical">
                 <div className="card bg-dark text-white">
                     <div className="card-header">Trades</div>
-                    <div className="card-body">
+                    <div className="card-body trades">
                         <table className="table table-dark table-sm small">
                             <thead>
                                 <tr>
@@ -51,10 +48,6 @@ class Trades extends Component {
                     </div>
                 </div>
             </div>
-
-
-
-
         )
     }
 }

@@ -1936,12 +1936,174 @@ Compiling your contracts...
 ## 10. Trade UI
 
 - action.js add filled orders codes
-
 - Reducers.js add filled orders codes
-
 - Selectors.js add filled orders codes
-
 - interaction.js add filled orders codes
 
-  
+## 11. OrderBook
 
+- Add open orders code in selectors.js
+
+  ```js
+  const orderBookLoaded = state => canceledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
+  export const orderBookLoadedSelector = createSelector (
+      orderBookLoaded,
+      obl => obl
+  )
+  // Open orders without filled orders & cancelled orders
+  const openOrders = state => {
+      const all = allOrders(state)
+      const filled = filledOrders(state)
+      const cancelled = cancelledOrders(state)
+  
+      const openOrders = reject(all, (order) => {
+          const orderFilled = filled.some((filledOrder) => filledOrder.id === order.id)
+          const orderCancelled = cancelled.some((cancelledOrder) => cancelledOrder.id === order.id)
+          return(orderFilled || orderCancelled)
+      })
+      return openOrders
+  }
+  export const orderBookSelector = createSelector(
+      openOrders,
+      (orders) => {
+          orders = decorateBookOrders(orders)
+          // Group order by "orderType", "sell" or "buy"
+          orders = groupBy(orders, 'orderType')
+          // Fetch buy orders
+          const buyOrders = get(orders, 'buy', [])
+          // Sort buy orders by tokenPrice desc
+          orders = {
+              ...orders,
+              buyOrders: buyOrders.sort((a,b) => b.tokenPrice - a.tokenPrice)
+          }
+          // Fetch sell orders
+          const sellOrders = get(orders, 'sell', [])
+          // Sort sell orders by tokenPrice desc
+          orders = {
+              ...orders,
+              sellOrders: sellOrders.sort((a,b) => b.tokenPrice - a.tokenPrice)
+          }
+          return orders
+      }
+  )
+  
+  const decorateBookOrders = (orders) => {
+      return (
+          orders.map((order) => {
+              order = decorateOrder(order)
+              order = decorateBookOrder(order)
+      
+              return order
+          })
+      )
+      
+  }
+  
+  const decorateBookOrder = (order) => {
+      const orderType = order.tokenGiveAdr === ETHER_ADDRESS ? 'buy' : 'sell'
+      return({
+          ...order,
+          orderType,
+          orderTypeClass: (orderType === 'buy' ? GREEN : RED),
+          orderFillClass: (orderType === 'buy' ? 'sell' : 'buy')
+      })
+  }
+  ```
+
+- Add OrderBook component as OrderBook.js file
+
+  ```js
+  /**
+   * @Author: GKing
+   * @Date: 2022-11-27 10:13:19
+   * @LastEditors: GKing
+   * @LastEditTime: 2022-11-27 19:39:34
+   * @Description: 
+   * @TODO: 
+   */
+  
+  import React, { Component } from 'react'
+  import { connect } from 'react-redux'
+  import { orderBookLoadedSelector, orderBookSelector } from '../redux/selectors'
+  import Spinner from './Spinner'
+  
+  const renderOrder = (order) => {
+      return (
+          <tr key={order.id}>
+              <td>{order.tokenAmount}</td>
+              <td className={`text-${order.orderTypeClass}`}>{order.tokenPrice}</td>
+              <td>{order.etherAmount}</td>
+          </tr>
+      )
+  }
+  
+  const showOrderBook = (props) => {
+      const { orderBook } = props
+      return (
+          <tbody>
+              <tr>
+                  <th>KSMN</th>
+                  <th>KSMN/ETH</th>
+                  <th>ETH</th>
+              </tr>
+              <tr className='text-danger'>Sell</tr>
+              {orderBook.sellOrders.map((order) => renderOrder(order))}
+              <tr className='text-success'>Buy</tr>
+              {orderBook.buyOrders.map((order) => renderOrder(order))}
+          </tbody>
+      )
+  }
+  
+  class OrderBook extends Component {
+      render() {
+          return (
+              <div className="vertical">
+                  <div className="card bg-dark text-white">
+                      <div className="card-header">Order Book</div>
+                      <div className="card-body order-book">
+                          <table className="table table-dark table-sm small">
+                              {this.props.orderBookLoaded ? showOrderBook(this.props) : <Spinner type="table" />}
+                          </table>
+                      </div>
+                  </div>
+              </div>
+          )
+      }
+  }
+  
+  function mapStateToProps(state) {
+      return {
+          orderBookLoaded: orderBookLoadedSelector(state),
+          orderBook: orderBookSelector(state)
+      }
+  }
+  
+  export default connect(mapStateToProps)(OrderBook);
+  ```
+
+- Run in Chrome
+
+  <img src="https://markdown-res.oss-cn-hangzhou.aliyuncs.com/mdImgs/2022/11/27/20221127194836.png" alt="image-20221127194834967" style="zoom:50%;" />
+
+- Debug amount 0
+
+  find the "User1 makes 10 orders" and "User2 makes 10 orders" in seed-exchange.js line 131 and 138, the "for" loop "i" begins 0, it should begin 1.
+
+  ```js
+  // Seed open orders
+  // User1 makes 10 orders
+  for (let i = 1; i < 10; i++) {
+      result = await exchange.createOrder(token.address, tokens(10 * i), ETHER_ADDRESS, ethers(0.01), {from: user1});
+      console.log(`Made order from ${user1}`);
+      await wait(1);
+  }
+  
+  // User2 makes 10 orders
+  for (let i = 1; i < 10; i++) {
+      result = await exchange.createOrder(ETHER_ADDRESS, ethers(0.01), token.address, tokens(10 * i), {from: user2});
+      console.log(`Made order from ${user2}`);
+      await wait(1);
+  }
+  ```
+
+  

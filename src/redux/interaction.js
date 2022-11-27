@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 15:15:48
+ * @LastEditTime: 2022-11-27 15:53:54
  * @Description: 
  * @TODO: 
  */
@@ -78,9 +78,9 @@ export const loadAllOrders = async (exchange, dispatch) => {
     dispatch(filledOrdersLoaded(filledOrders))
 
     // Fetch all orders with the 'Order' event stream
-    const allordersStream = await exchange.getPastEvents('Order', {fromBlock: 0, toBlock: 'latest'})
+    const allOrdersStream = await exchange.getPastEvents('Order', {fromBlock: 0, toBlock: 'latest'})
     // Format all orders
-    const alldOrders = allordersStream.map((event) => event.returnValues)
+    const alldOrders = allOrdersStream.map((event) => event.returnValues)
     // Add all orders to redux store
     dispatch(allOrdersLoaded(alldOrders))
 }
