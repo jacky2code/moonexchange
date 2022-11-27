@@ -1933,5 +1933,15 @@ Compiling your contracts...
 
 - Add selectors.js
 
+## 10. Trade UI
+
+- action.js add filled orders codes
+
+- Reducers.js add filled orders codes
+
+- Selectors.js add filled orders codes
+
+- interaction.js add filled orders codes
+
   
 

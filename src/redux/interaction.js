@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 22:04:18
+ * @LastEditTime: 2022-11-27 15:15:48
  * @Description: 
  * @TODO: 
  */
@@ -14,7 +14,10 @@ import {
     web3Loaded,
     web3AccountLoaded,
     tokenLoaded,
-    exchangeLoaded
+    exchangeLoaded,
+    canceledOrdersLoaded,
+    filledOrdersLoaded,
+    allOrdersLoaded
 } from './actions';
 
 export const loadWeb3 = (dispatch) => {
@@ -57,4 +60,27 @@ export const loadExchange = async (web3, networkId, dispatch) => {
         console.log('Exchange contract not deployed to current network. Please select another network with matemask')
         return null
     }
+}
+
+export const loadAllOrders = async (exchange, dispatch) => {
+    // Fetch canceled orders with the 'Cancel' event stream
+    const cancelStream = await exchange.getPastEvents('Cancel', {fromBlock: 0, toBlock: 'latest'})
+    // Format the canceled orders
+    const canceledOrders = cancelStream.map((event) => event.returnValues)
+    // Add canceled orders to redux store
+    dispatch(canceledOrdersLoaded(canceledOrders))
+
+    // Fetch filled orders with the 'Trade' event stream
+    const tradeStream = await exchange.getPastEvents('Trade', {fromBlock: 0, toBlock: 'latest'})
+    // Format the filled orders
+    const filledOrders = tradeStream.map((event) => event.returnValues)
+    // Add filled orders to redux store
+    dispatch(filledOrdersLoaded(filledOrders))
+
+    // Fetch all orders with the 'Order' event stream
+    const allordersStream = await exchange.getPastEvents('Order', {fromBlock: 0, toBlock: 'latest'})
+    // Format all orders
+    const alldOrders = allordersStream.map((event) => event.returnValues)
+    // Add all orders to redux store
+    dispatch(allOrdersLoaded(alldOrders))
 }

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 21:49:07
+ * @LastEditTime: 2022-11-27 10:09:39
  * @Description: 
  * @TODO: 
  */
@@ -44,6 +44,12 @@ function exchange(state = {}, action) {
   switch(action.type) {
     case 'EXCHANGE_LOADED':
       return { ...state, loaded: true, contract: action.contract }
+    case 'CANCELED_ORDERS_LOADED':
+      return { ...state, canceledOrders: {loaded: true, data: action.canceledOrders}}
+    case 'FILLED_ORDERS_LOADED':
+      return { ...state, filledOrders: {loaded: true, data: action.filledOrders}}
+    case 'ALL_ORDERS_LOADED':
+      return { ...state, allOrders: {loaded: true, data: action.allOrders}}
     default:
       return state
   }

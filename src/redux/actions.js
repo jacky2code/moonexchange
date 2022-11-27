@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:45:30
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 20:25:00
+ * @LastEditTime: 2022-11-27 15:01:10
  * @Description: 
  * @TODO: 
  */
@@ -31,5 +31,26 @@ export function exchangeLoaded(contract) {
     return {
         type: 'EXCHANGE_LOADED',
         contract: contract
+    }
+}
+
+export function canceledOrdersLoaded(canceledOrders) {
+    return {
+        type: 'CANCELED_ORDERS_LOADED',
+        canceledOrders: canceledOrders
+    }
+}
+
+export function filledOrdersLoaded(filledOrders) {
+    return {
+        type: 'FILLED_ORDERS_LOADED',
+        filledOrders: filledOrders
+    }
+}
+
+export function allOrdersLoaded(allOrders) {
+    return {
+        type: 'ALL_ORDERS_LOADED',
+        allOrders: allOrders
     }
 }
