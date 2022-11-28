@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 19:42:19
+ * @LastEditTime: 2022-11-28 11:26:35
  * @Description: 
  * @TODO: 
  */
@@ -38,40 +38,40 @@ const allOrders = state => get(state, 'exchange.allOrders.data', [])
 
 const cancelledOrdersLoaded = state => get(state, 'exchange.cancelledOrders.loaded', false)
 export const cancelledOrdersLoadedSelector = createSelector(
-    cancelledOrdersLoaded, 
+    cancelledOrdersLoaded,
     cld => cld
-    )
+)
 
 const cancelledOrders = state => get(state, 'exchange.cancelledOrders.data', [])
-export const cancelledOrdersSelector = createSelector (
+export const cancelledOrdersSelector = createSelector(
     cancelledOrders,
     (orders) => {
         // Sort order by time asc
-        orders = orders.sort((a,b) => a.timestamp - b.timestamp)
+        orders = orders.sort((a, b) => a.timestamp - b.timestamp)
         orders = decorateFilledOrders(orders)
         // Sort order by time desc
-        orders = orders.sort((a,b) => b.timestamp - a.timestamp)
-        console.log('cancelledOrders ==============',orders)
+        orders = orders.sort((a, b) => b.timestamp - a.timestamp)
+        console.log('cancelledOrders ==============', orders)
         return orders
     }
 )
 
 const filledOrdersLoaded = state => get(state, 'exchange.filledOrders.loaded', false)
-export const filledOrdersLoadedSelector = createSelector (
-    filledOrdersLoaded, 
+export const filledOrdersLoadedSelector = createSelector(
+    filledOrdersLoaded,
     fld => fld
 )
 
 const filledOrders = state => get(state, 'exchange.filledOrders.data', [])
-export const filledOrdersSelector = createSelector (
+export const filledOrdersSelector = createSelector(
     filledOrders,
     (orders) => {
         // Sort order by time asc
-        orders = orders.sort((a,b) => a.timestamp - b.timestamp)
+        orders = orders.sort((a, b) => a.timestamp - b.timestamp)
         orders = decorateFilledOrders(orders)
         // Sort order by time desc
-        orders = orders.sort((a,b) => b.timestamp - a.timestamp)
-        console.log('filledOrders ==============',orders)
+        orders = orders.sort((a, b) => b.timestamp - a.timestamp)
+        console.log('filledOrders ==============', orders)
         return orders
     }
 )
@@ -81,7 +81,7 @@ const decorateFilledOrders = (orders) => {
     return (
         orders.map((order) => {
             order = decorateOrder(order)
-            order = decorateFilledOrder(order, preOrder)  
+            order = decorateFilledOrder(order, preOrder)
             preOrder = order
             return order
         })
@@ -114,7 +114,7 @@ const decorateOrder = (order) => {
         tokenAmount: tokens(tokenAmount),
         tokenPrice: tokenPrice,
         formatTime: moment.unix(order.timestamp).format('YYYY-MM-DD HH:mm:ss')
-        
+
     })
 }
 
@@ -127,12 +127,11 @@ const decorateFilledOrder = (order, preOrder) => {
 }
 
 const tokenPriceClass = (tokenPrice, orderId, preOrder) => {
-    if(orderId === preOrder.id)
-    {
+    if (orderId === preOrder.id) {
         return GREEN
     }
     // Show green if tokenPrice > preOrder.tokenPrice
-    if(tokenPrice >= preOrder.tokenPrice) {
+    if (tokenPrice >= preOrder.tokenPrice) {
         return GREEN
     } else {
         return RED
@@ -143,7 +142,7 @@ const tokenPriceClass = (tokenPrice, orderId, preOrder) => {
 }
 
 const orderBookLoaded = state => canceledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
-export const orderBookLoadedSelector = createSelector (
+export const orderBookLoadedSelector = createSelector(
     orderBookLoaded,
     obl => obl
 )
@@ -156,7 +155,7 @@ const openOrders = state => {
     const openOrders = reject(all, (order) => {
         const orderFilled = filled.some((filledOrder) => filledOrder.id === order.id)
         const orderCancelled = cancelled.some((cancelledOrder) => cancelledOrder.id === order.id)
-        return(orderFilled || orderCancelled)
+        return (orderFilled || orderCancelled)
     })
     return openOrders
 }
@@ -171,14 +170,14 @@ export const orderBookSelector = createSelector(
         // Sort buy orders by tokenPrice desc
         orders = {
             ...orders,
-            buyOrders: buyOrders.sort((a,b) => b.tokenPrice - a.tokenPrice)
+            buyOrders: buyOrders.sort((a, b) => b.tokenPrice - a.tokenPrice)
         }
         // Fetch sell orders
         const sellOrders = get(orders, 'sell', [])
         // Sort sell orders by tokenPrice desc
         orders = {
             ...orders,
-            sellOrders: sellOrders.sort((a,b) => b.tokenPrice - a.tokenPrice)
+            sellOrders: sellOrders.sort((a, b) => b.tokenPrice - a.tokenPrice)
         }
         return orders
     }
@@ -189,19 +188,98 @@ const decorateBookOrders = (orders) => {
         orders.map((order) => {
             order = decorateOrder(order)
             order = decorateBookOrder(order)
-    
+
             return order
         })
     )
-    
+
 }
 
 const decorateBookOrder = (order) => {
     const orderType = order.tokenGiveAdr === ETHER_ADDRESS ? 'buy' : 'sell'
-    return({
+    return ({
         ...order,
         orderType,
         orderTypeClass: (orderType === 'buy' ? GREEN : RED),
         orderFillClass: (orderType === 'buy' ? 'sell' : 'buy')
     })
 }
+
+export const myFilledOrdersLoadedSelector = createSelector(filledOrdersLoaded, loaded => loaded)
+export const myFilledOrdersSelector = createSelector(
+    account,
+    filledOrders,
+    (account, orders) => {
+        // Fetch my orders
+        orders = orders.filter((o) => o.userAdr === account || o.userFillAdr === account)
+        orders = orders.sort((a, b) => a.timestamp - b.timestamp)
+        // Decorate orders add UI attributes
+        orders = decorateMyFilledOrders(orders, account)
+        return orders
+    }
+)
+
+const decorateMyFilledOrders = (orders, account) => {
+    return (
+        orders.map((order) => {
+            order = decorateOrder(order)
+            order = decorateMyFilledOrder(order, account)
+
+            return order
+        })
+    )
+}
+
+const decorateMyFilledOrder = (order, account) => {
+    const isMyOrder = order.userAdr === account
+
+    let orderType
+    if (isMyOrder) {
+        orderType = order.tokenGiveAdr === ETHER_ADDRESS ? 'buy' : 'sell'
+    } else {
+        orderType = order.tokenGiveAdr === ETHER_ADDRESS ? 'sell' : 'buy'
+    }
+
+
+    return ({
+        ...order,
+        orderType,
+        orderTypeClass: (orderType === 'buy' ? GREEN : RED),
+        orderSign: (orderType === 'buy' ? '+' : '-')
+    })
+}
+
+export const myOpenOrdersLoadedSelector = createSelector(orderBookLoaded, loaded => loaded)
+export const myOpenOrdersSelector = createSelector(
+    account,
+    openOrders,
+    (account, orders) => {
+        // Fetch my orders
+        orders = orders.filter((o) => o.userAdr === account)
+        orders = decorateMyOpenOrders(orders)
+        // Sort order by time desc
+        orders = orders.sort((a, b) => b.timestamp - a.timestamp)
+        return orders
+    }
+)
+
+const decorateMyOpenOrders = (orders, account) => {
+    return (
+        orders.map((order) => {
+            order = decorateOrder(order)
+            order = decorateMyOpenOrder(order, account)
+            return order
+        })
+    )
+}
+
+const decorateMyOpenOrder = (order, account) => {
+    let orderType = order.tokenGiveAdr === ETHER_ADDRESS ? 'buy' : 'sell'
+    return ({
+        ...order,
+        orderType,
+        orderTypeClass: (orderType === 'buy' ? GREEN : RED)
+    })
+}
+
+

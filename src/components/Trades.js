@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 19:28:40
+ * @LastEditTime: 2022-11-28 01:18:49
  * @Description: 
  * @TODO: 
  */
@@ -31,21 +31,19 @@ const showFilledOrders = (filledOrders) => {
 class Trades extends Component {
     render() {
         return (
-            <div className="vertical">
-                <div className="card bg-dark text-white">
-                    <div className="card-header">Trades</div>
-                    <div className="card-body trades">
-                        <table className="table table-dark table-sm small">
-                            <thead>
-                                <tr>
-                                    <th>TIME</th>
-                                    <th>KSMN</th>
-                                    <th>KSMN/ETH</th>
-                                </tr>
-                            </thead>
-                            {this.props.filledOrdersLoaded ? showFilledOrders(this.props.filledOrders) : <Spinner type="table" />}
-                        </table>
-                    </div>
+            <div className="card bg-dark text-white">
+                <div className="card-header">Trades</div>
+                <div className="card-body trades">
+                    <table className="table table-dark table-sm small">
+                        <thead>
+                            <tr>
+                                <th>TIME</th>
+                                <th>KSMN</th>
+                                <th>KSMN/ETH</th>
+                            </tr>
+                        </thead>
+                        {this.props.filledOrdersLoaded ? showFilledOrders(this.props.filledOrders) : <Spinner type="table" />}
+                    </table>
                 </div>
             </div>
         )

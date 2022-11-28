@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 19:39:34
+ * @LastEditTime: 2022-11-28 01:19:11
  * @Description: 
  * @TODO: 
  */
@@ -31,9 +31,17 @@ const showOrderBook = (props) => {
                 <th>KSMN/ETH</th>
                 <th>ETH</th>
             </tr>
-            <tr className='text-danger'>Sell</tr>
+            <tr className='text-danger'>
+                <th>Sell</th>
+                <th></th>
+                <th></th>
+            </tr>
             {orderBook.sellOrders.map((order) => renderOrder(order))}
-            <tr className='text-success'>Buy</tr>
+            <tr className='text-success'>
+                <th>Buy</th>
+                <th></th>
+                <th></th>
+            </tr>
             {orderBook.buyOrders.map((order) => renderOrder(order))}
         </tbody>
     )
@@ -42,14 +50,12 @@ const showOrderBook = (props) => {
 class OrderBook extends Component {
     render() {
         return (
-            <div className="vertical">
-                <div className="card bg-dark text-white">
-                    <div className="card-header">Order Book</div>
-                    <div className="card-body order-book">
-                        <table className="table table-dark table-sm small">
-                            {this.props.orderBookLoaded ? showOrderBook(this.props) : <Spinner type="table" />}
-                        </table>
-                    </div>
+            <div className="card bg-dark text-white">
+                <div className="card-header">Order Book</div>
+                <div className="card-body order-book">
+                    <table className="table table-dark table-sm small">
+                        {this.props.orderBookLoaded ? showOrderBook(this.props) : <Spinner type="table" />}
+                    </table>
                 </div>
             </div>
         )

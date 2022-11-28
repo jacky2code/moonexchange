@@ -2106,4 +2106,9 @@ Compiling your contracts...
   }
   ```
 
-  
+
+## 12. My Transaction
+
+- add MyTransactions.js component
+- add selectors in selectors.js
+
