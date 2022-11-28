@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 21:28:16
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 01:19:32
+ * @LastEditTime: 2022-11-28 13:29:14
  * @Description: 
  * @TODO: 
  */
@@ -14,6 +14,7 @@ import { exchangeSelector } from '../redux/selectors';
 import Trades from './Trades';
 import OrderBook from './OrderBook';
 import MyTransactions from './MyTransactions';
+import PriceChart from './PriceChart';
 
 class Content extends Component {
 
@@ -48,13 +49,7 @@ class Content extends Component {
                 <OrderBook />
 
                 <div className="vertical-split">
-                    <div className="card bg-dark text-white">
-                        <div className="card-header">Card Title</div>
-                        <div className="card-body">
-                            <p className="card-text">Some quick example text</p>
-                            <a href="localhost:3000" className="card-link">Card link</a>
-                        </div>
-                    </div>
+                    <PriceChart />
                     <MyTransactions />
                 </div>
                 <Trades />

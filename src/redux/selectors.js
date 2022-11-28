@@ -2,12 +2,12 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 11:26:35
+ * @LastEditTime: 2022-11-28 17:55:57
  * @Description: 
  * @TODO: 
  */
 
-import { get, groupBy, reject } from "lodash";
+import { get, groupBy, maxBy, minBy, reject } from "lodash";
 import { createSelector } from "reselect";
 import { ETHER_ADDRESS, tokens, ethers, GREEN, RED } from '../Helper'
 import moment from "moment/moment";
@@ -283,3 +283,49 @@ const decorateMyOpenOrder = (order, account) => {
 }
 
 
+export const priceChartLoadedSelector = createSelector(filledOrdersLoaded, loaded => loaded)
+export const priceChartSelector = createSelector(
+    filledOrders,
+    (orders) => {
+        orders = orders.sort((a,b) => a.timestamp - b.timestamp)
+        orders = orders.map((o) => decorateOrder(o))
+
+        // Get last 2 orders for final price & price change
+        let secondLastOrder, lastOrder
+        [secondLastOrder, lastOrder] = orders.slice(orders.length - 2, orders.length)
+        // Get last order price
+        const lastPrice = get(lastOrder, 'tokenPrice', 0)
+        const secondLastPrice = get(secondLastOrder, 'tokenPrice', 0)
+
+
+        return ({
+            lastPrice,
+            lastPriceChange: (lastPrice >= secondLastPrice ? '+' : '-'),
+            series:[{
+                data: buildGraphData(orders)
+            }]
+        })
+    }
+)
+
+const buildGraphData = (orders) => {
+    // Group the orders by hour for the graph
+    orders = groupBy(orders, (o) => moment.unix(o.timestamp).startOf('hour').format())
+    // Get each hour where data exists
+    const hours = Object.keys(orders)
+    // build the graph series
+    const graphData = hours.map((hour) => {
+        // Fetch all orders from current hour
+        const group = orders[hour]
+        // Calculate price values - open, high, low, close
+        const open = group[0]
+        const high = maxBy(group, 'tokenPrice')
+        const low = minBy(group, 'tokenPrice')
+        const close = group[group.length - 1]
+        return({
+            x: new Date(hour),
+            y: [open.tokenPrice, high.tokenPrice, low.tokenPrice, close.tokenPrice]
+        })
+    })
+    return graphData
+}

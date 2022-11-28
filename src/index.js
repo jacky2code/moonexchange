@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-15 18:11:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 09:35:20
+ * @LastEditTime: 2022-11-28 13:32:07
  * @Description: 
  * @TODO: 
  */
@@ -10,7 +10,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-
 import 'bootstrap/dist/css/bootstrap.css';
 import App from './App';
 import configureStore from './redux/configureStore';
