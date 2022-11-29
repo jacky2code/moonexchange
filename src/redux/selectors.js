@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 17:45:19
+ * @LastEditTime: 2022-11-29 20:18:48
  * @Description: 
  *  选择器函数接收整个 state 对象，并且返回需要的部分数据
  *  每当 Redux store 更新时，选择器将重新运行，如果它们返回的数据发生更改，则组件将重新渲染
@@ -13,6 +13,9 @@ import { get, groupBy, maxBy, minBy, reject } from "lodash";
 import { createSelector } from "reselect";
 import { ETHER_ADDRESS, tokens, ethers, GREEN, RED } from '../Helper'
 import moment from "moment/moment";
+
+const web3 = state => get(state, 'web3.connection')
+export const web3Selector = createSelector(web3, web3 => web3);
 
 const account = state => get(state, 'web3.account')
 export const accountSelector = createSelector(account, a => a);
@@ -28,11 +31,13 @@ export const exchangeLoadedSelector = createSelector(exchangeLoaded, el => el)
 
 const exchange = state => get(state, 'exchange.contract', false)
 export const exchangeSelector = createSelector(exchange, e => e)
+
 export const contractsLoadedSelector = createSelector(
     tokenLoaded,
     exchangeLoaded,
     (tl, el) => (tl && el)
 )
+
 
 const allOrdersLoaded = state => get(state, 'exchange.allOrders.loaded', false)
 const allOrders = state => get(state, 'exchange.allOrders.data', [])

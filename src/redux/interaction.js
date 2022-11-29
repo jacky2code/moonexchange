@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 19:09:14
+ * @LastEditTime: 2022-11-29 20:09:13
  * @Description: 交互
  * @TODO: 
  */
@@ -105,4 +105,8 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     exchange.events.Cancel({}, (error, event) => {
         dispatch(orderCancelled(event.returnValues))
     })
+}
+
+export const loadBalance = (dispatch, web3, exchange, token, account) => {
+
 }

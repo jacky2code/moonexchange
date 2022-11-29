@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 11:41:01
+ * @LastEditTime: 2022-11-29 20:01:54
  * @Description: 
  * @TODO: 
  */
@@ -104,8 +104,6 @@ class MyTransactions extends Component {
 function mapStateToProps(state) {
     const myOpenOrdersLoaded = myOpenOrdersLoadedSelector(state)
     const orderCancelling = orderCancellingSelector(state)
-
-    console.log('myOpenOrders ====== ',{myOpenOrders: myOpenOrdersSelector(state)})
     return {
         myFilledOrdersLoaded: myFilledOrdersLoadedSelector(state),
         myFilledOrders: myFilledOrdersSelector(state),
