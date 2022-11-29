@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 13:30:16
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 15:40:19
+ * @LastEditTime: 2022-11-29 21:21:45
  * @Description: 
  * @TODO: 
  */
@@ -14,13 +14,20 @@ export const DECIMALS = (10 ** 18)
 
 // wei转换bigNumber
 export const ethers = (wei) => {
-    if(wei)
-    {
+    if (wei) {
         return (wei / DECIMALS)
     }
 }
 
 export const tokens = ethers
+
+export const balanceFormat = (balance) => {
+    const precision = 100
+    balance = ethers(balance)
+    balance = Math.round(balance * precision) / precision // Use 2 decimal places
+
+    return balance
+}
 
 export const WHITE_CANDLE = '#E5F0FF'
 export const GREEN_CANDLE = '#00B38B'

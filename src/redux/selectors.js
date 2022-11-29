@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 20:18:48
+ * @LastEditTime: 2022-11-29 21:47:04
  * @Description: 
  *  选择器函数接收整个 state 对象，并且返回需要的部分数据
  *  每当 Redux store 更新时，选择器将重新运行，如果它们返回的数据发生更改，则组件将重新渲染
@@ -11,7 +11,7 @@
 
 import { get, groupBy, maxBy, minBy, reject } from "lodash";
 import { createSelector } from "reselect";
-import { ETHER_ADDRESS, tokens, ethers, GREEN, RED } from '../Helper'
+import { ETHER_ADDRESS, tokens, ethers, GREEN, RED, balanceFormat } from '../Helper'
 import moment from "moment/moment";
 
 const web3 = state => get(state, 'web3.connection')
@@ -341,3 +341,37 @@ export const orderCancellingSelector = createSelector(
     orderCancelling,
     status => status
 )
+
+
+// Balances oprations
+const balancesLoading = state => get(state, 'exchange.balancesLoading', true)
+export const balancesLoadingSelector = createSelector(
+    balancesLoading,
+    status => status
+)
+
+const ethBalance = state => get(state, 'web3.balance', true)
+export const ethBalanceSelector = createSelector(
+    ethBalance,
+    (balance) => balanceFormat(balance)
+)
+
+const tokenBalance = state => get(state, 'token.balance', 0)
+export const tokenBalanceSelector = createSelector(
+    tokenBalance,
+    (balance) => balanceFormat(balance)
+)
+
+const ethBalanceInExch = state => get(state, 'exchange.ethBalanceInExch', 0)
+export const ethBalanceInExchSelector = createSelector(
+    ethBalanceInExch,
+    (balance) => balanceFormat(balance)
+)
+
+const tokenBalanceInExch = state => get(state, 'exchange.tokenBalanceInExch', 0)
+export const tokenBalanceInExchSelector = createSelector(
+    tokenBalanceInExch,
+    (balance) => balanceFormat(balance)
+)
+
+

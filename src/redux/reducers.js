@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 17:30:11
+ * @LastEditTime: 2022-11-29 22:11:36
  * @Description: 
  *  Reducers 总是通过复制现有状态值，更新副本来不可变地生成新状态
  *  Redux Toolkit createSlice 函数为您生成“slice reducer”函数，并让您编写 “mutable 可变”代码，内部自动将其转变为安全的不可变更新
@@ -29,6 +29,8 @@ function web3(state = {}, action) {
       return { ...state, connection: action.connection }
     case 'WEB3_ACCOUNT_LOADED':
       return { ...state, account: action.account }
+    case 'ETH_BALANCE_LOADED':
+      return { ...state, balance: action.ethBalance }
     default:
       return state
   }
@@ -38,6 +40,8 @@ function token(state = {}, action) {
   switch(action.type) {
     case 'TOKEN_LOADED':
       return { ...state, loaded: true, contract: action.contract }
+    case 'TOKEN_BALANCE_LOADED':
+      return { ...state, balance: action.tokenBalance }
     default:
       return state
   }
@@ -67,6 +71,14 @@ function exchange(state = {}, action) {
           ]
         }
       }
+    case 'TOKEN_BALANCE_IN_EXCH_LOADED':
+      return { ...state, tokenBalanceInExch: action.tokenBalanceInExch }
+    case 'ETH_BALANCE_IN_EXCH_LOADED':
+      return { ...state, ethBalanceInExch: action.ethBalanceInExch }
+    case 'ALL_BALANCES_LOADED':
+      return { ...state, balancesLoading: false }
+    case 'ALL_BALANCES_LOADING':
+      return { ...state, balancesLoading: true }
     default:
       return state
   }

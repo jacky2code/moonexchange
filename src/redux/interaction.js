@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 20:09:13
+ * @LastEditTime: 2022-11-29 21:52:00
  * @Description: 交互
  * @TODO: 
  */
@@ -19,8 +19,14 @@ import {
     filledOrdersLoaded,
     allOrdersLoaded,
     orderCancelling,
-    orderCancelled
+    orderCancelled,
+    ethBalanceLoaded,
+    tokenBalanceLoaded,
+    ethBalanceInExchLoaded,
+    tokenBalanceInExchLoaded,
+    allBalancesLoaded
 } from './actions';
+import { ETHER_ADDRESS } from '../Helper';
 
 export const loadWeb3 = (dispatch) => {
     const connection = new Web3(Web3.givenProvider || 'http://localhost:8545')
@@ -107,6 +113,25 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     })
 }
 
-export const loadBalance = (dispatch, web3, exchange, token, account) => {
+export const loadBalance = async (dispatch, web3, exchange, token, account) => {
+    // ETH balance in wallet
+    const ethBlance = await web3.eth.getBalance(account)
+    dispatch(ethBalanceLoaded(ethBlance))
+    
+    // Token balance in walet
+    const tokenBalance = await token.methods.balanceOf(account).call()
+    dispatch(tokenBalanceLoaded(tokenBalance))
 
+    // User's ETH balance in exchange
+    const ethBalanceInExch = await exchange.methods.balanceOf(ETHER_ADDRESS, account).call()
+    dispatch(ethBalanceInExchLoaded(ethBalanceInExch))
+
+    // User's token balance in exchange
+    const tokenBalanceInExch = await exchange.methods.balanceOf(token.options.address, account).call()
+    dispatch(tokenBalanceInExchLoaded(tokenBalanceInExch))
+
+    // All balances loaded
+    dispatch(allBalancesLoaded())
 }
+
+
