@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-15 20:20:56
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-24 23:05:34
+ * @LastEditTime: 2022-11-29 14:46:41
  * @Description: 
  */
 require('babel-register');
@@ -19,7 +19,7 @@ module.exports = {
   networks: {
     development: {
       host: "127.0.0.1",
-      port: 7545,
+      port: 8545,
       network_id: "*" // Match any network id
     },
   },

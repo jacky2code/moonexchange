@@ -2,20 +2,20 @@
  * @Author: GKing
  * @Date: 2022-11-15 18:11:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 13:32:07
+ * @LastEditTime: 2022-11-29 15:29:53
  * @Description: 
  * @TODO: 
  */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { render } from 'react-dom';
+// import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import 'bootstrap/dist/css/bootstrap.css';
 import App from './App';
 import configureStore from './redux/configureStore';
 import reportWebVitals from './reportWebVitals';
 
-const store = configureStore();
+// const store = configureStore();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

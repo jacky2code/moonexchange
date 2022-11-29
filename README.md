@@ -211,7 +211,7 @@
   networks: {
     development: {
       host: "127.0.0.1",
-      port: 7545,
+      port: 8545,
       network_id: "*"
     },
   },
@@ -1738,7 +1738,7 @@ Compiling your contracts...
           // User1 cancels order
           orderId = result.logs[0].args.id;
           await exchange.cancelOrder(orderId, {from: user1});
-          console.log(`Canceled order from ${user1}`);
+          console.log(`Cancelled order from ${user1}`);
   
   
   
@@ -1907,7 +1907,7 @@ Compiling your contracts...
       this.loaadBlockchainData();
     }
     async loaadBlockchainData() {
-      var web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
+      var web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
       const network = await web3.eth.net.getNetworkType();
       const networkId = await web3.eth.net.getId();
       const accounts = await web3.eth.getAccounts();
@@ -1945,7 +1945,7 @@ Compiling your contracts...
 - Add open orders code in selectors.js
 
   ```js
-  const orderBookLoaded = state => canceledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
+  const orderBookLoaded = state => cancelledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
   export const orderBookLoadedSelector = createSelector (
       orderBookLoaded,
       obl => obl

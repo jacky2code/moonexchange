@@ -2,8 +2,8 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 15:53:54
- * @Description: 
+ * @LastEditTime: 2022-11-29 19:09:14
+ * @Description: 交互
  * @TODO: 
  */
 import Web3 from 'web3';
@@ -15,13 +15,15 @@ import {
     web3AccountLoaded,
     tokenLoaded,
     exchangeLoaded,
-    canceledOrdersLoaded,
+    cancelledOrdersLoaded,
     filledOrdersLoaded,
-    allOrdersLoaded
+    allOrdersLoaded,
+    orderCancelling,
+    orderCancelled
 } from './actions';
 
 export const loadWeb3 = (dispatch) => {
-    const connection = new Web3(Web3.givenProvider || 'http://localhost:7545')
+    const connection = new Web3(Web3.givenProvider || 'http://localhost:8545')
 
     dispatch(web3Loaded(connection))
 
@@ -39,12 +41,15 @@ export const loadAccount = async (web3, dispatch) => {
 export const loadToken = async (web3, networkId, dispatch) => {
 
     try {
-        const token = new web3.eth.Contract(Token.abi, Token.networks[networkId].address);
+        const networks = Token.networks
+        const netWorkData = networks[networkId]
+        const netWordAddress = netWorkData.address
+        const token = new web3.eth.Contract(Token.abi, netWordAddress);
         dispatch(tokenLoaded(token))
 
         return token
     } catch (error) {
-        console.log('Token contract not deployed to current network. Please select another network with matemask')
+        console.log('Token contract not deployed to current network. Please select another network with matemask network id :', networkId)
         return null
     }
 }
@@ -63,12 +68,12 @@ export const loadExchange = async (web3, networkId, dispatch) => {
 }
 
 export const loadAllOrders = async (exchange, dispatch) => {
-    // Fetch canceled orders with the 'Cancel' event stream
+    // Fetch cancelled orders with the 'Cancel' event stream
     const cancelStream = await exchange.getPastEvents('Cancel', {fromBlock: 0, toBlock: 'latest'})
-    // Format the canceled orders
-    const canceledOrders = cancelStream.map((event) => event.returnValues)
-    // Add canceled orders to redux store
-    dispatch(canceledOrdersLoaded(canceledOrders))
+    // Format the cancelled orders
+    const cancelledOrders = cancelStream.map((event) => event.returnValues)
+    // Add cancelled orders to redux store
+    dispatch(cancelledOrdersLoaded(cancelledOrders))
 
     // Fetch filled orders with the 'Trade' event stream
     const tradeStream = await exchange.getPastEvents('Trade', {fromBlock: 0, toBlock: 'latest'})
@@ -83,4 +88,21 @@ export const loadAllOrders = async (exchange, dispatch) => {
     const alldOrders = allOrdersStream.map((event) => event.returnValues)
     // Add all orders to redux store
     dispatch(allOrdersLoaded(alldOrders))
+}
+
+export const cancelOrder = (dispatch, exchange, order, account) => {
+    exchange.methods.cancelOrder(order.id).send({
+        from: account
+    }).on('transactionHash', (hash) => {
+        dispatch(orderCancelling())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    });
+}
+// 订阅合约事件 
+export const subscribeToEvents = async (exchange, dispatch) => {
+    exchange.events.Cancel({}, (error, event) => {
+        dispatch(orderCancelled(event.returnValues))
+    })
 }

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-28 13:06:14
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 15:40:14
+ * @LastEditTime: 2022-11-29 12:02:23
  * @Description: 
  * @TODO: 
  */
@@ -11,7 +11,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import Chart from 'react-apexcharts'
 import Spinner from './Spinner'
-import { chartOptions, dummyData } from './PriceChart.config'
+import { chartOptions } from './PriceChart.config'
 import { priceChartSelector, priceChartLoadedSelector } from '../redux/selectors'
 
 const priceSymbol = (lastPriceChange) => {

@@ -2,10 +2,12 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:45:30
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 15:01:10
- * @Description: 
- * @TODO: 
+ * @LastEditTime: 2022-11-29 17:27:53
+ * @Description: 在 interactions.js 通过 dispatch 调用 actions.js 中的函数，
+ *  如：dispatch(web3AccountLoaded(account))
+ * @TODO: 定义 action 给 reducer 使用
  */
+
 export function web3Loaded(connection) {
     return {
         type: 'WEB3_LOADED',
@@ -34,10 +36,10 @@ export function exchangeLoaded(contract) {
     }
 }
 
-export function canceledOrdersLoaded(canceledOrders) {
+export function cancelledOrdersLoaded(cancelledOrders) {
     return {
-        type: 'CANCELED_ORDERS_LOADED',
-        canceledOrders: canceledOrders
+        type: 'CANCELLED_ORDERS_LOADED',
+        cancelledOrders: cancelledOrders
     }
 }
 
@@ -52,5 +54,18 @@ export function allOrdersLoaded(allOrders) {
     return {
         type: 'ALL_ORDERS_LOADED',
         allOrders: allOrders
+    }
+}
+
+export function orderCancelling() {
+    return {
+        type: 'ORDER_CANCELLING'
+    }
+}
+
+export function orderCancelled(order) {
+    return {
+        type: 'ORDER_CANCELLED',
+        order: order
     }
 }

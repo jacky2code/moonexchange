@@ -2,8 +2,11 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 10:09:39
+ * @LastEditTime: 2022-11-29 17:30:11
  * @Description: 
+ *  Reducers 总是通过复制现有状态值，更新副本来不可变地生成新状态
+ *  Redux Toolkit createSlice 函数为您生成“slice reducer”函数，并让您编写 “mutable 可变”代码，内部自动将其转变为安全的不可变更新
+ *  这些 slice 化 reducer 函数被添加到 configureStore 中的 reducer 字段中，并定义了 Redux store 中的数据和状态字段名称
  * @TODO: 
  */
 import { combineReducers } from 'redux'
@@ -44,12 +47,26 @@ function exchange(state = {}, action) {
   switch(action.type) {
     case 'EXCHANGE_LOADED':
       return { ...state, loaded: true, contract: action.contract }
-    case 'CANCELED_ORDERS_LOADED':
-      return { ...state, canceledOrders: {loaded: true, data: action.canceledOrders}}
+    case 'CANCELLED_ORDERS_LOADED':
+      return { ...state, cancelledOrders: {loaded: true, data: action.cancelledOrders}}
     case 'FILLED_ORDERS_LOADED':
       return { ...state, filledOrders: {loaded: true, data: action.filledOrders}}
     case 'ALL_ORDERS_LOADED':
       return { ...state, allOrders: {loaded: true, data: action.allOrders}}
+    case 'ORDER_CANCELLING':
+      return { ...state, orderCancelling: true}
+    case 'ORDER_CANCELLED':
+      return {
+        ...state,
+        orderCancelling: false,
+        cancelledOrders: {
+          ...state.cancelledOrders,
+          data: [
+            ...state.cancelledOrders.data,
+            action.order
+          ]
+        }
+      }
     default:
       return state
   }

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 01:01:44
+ * @LastEditTime: 2022-11-29 11:41:01
  * @Description: 
  * @TODO: 
  */
@@ -10,11 +10,21 @@
 import React, { Component } from 'react'
 import { Tab, Tabs } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { myFilledOrdersLoadedSelector, myFilledOrdersSelector, myOpenOrdersLoadedSelector, myOpenOrdersSelector } from '../redux/selectors'
+import { 
+    myFilledOrdersLoadedSelector, 
+    myFilledOrdersSelector, 
+    myOpenOrdersLoadedSelector, 
+    myOpenOrdersSelector,
+    exchangeSelector,
+    accountSelector,
+    orderCancellingSelector
+} from '../redux/selectors'
 import Spinner from './Spinner'
+import { cancelOrder } from '../redux/interaction'
 
 
-const showMyFilledOrders = (myFilledOrders) => {
+const showMyFilledOrders = (props) => {
+    const { myFilledOrders } = props
     return (
         <tbody>
             {myFilledOrders.map((order) => {
@@ -30,7 +40,8 @@ const showMyFilledOrders = (myFilledOrders) => {
     )
 }
 
-const showMyOpenOrders = (myOpenOrders) => {
+const showMyOpenOrders = (props) => {
+    const { myOpenOrders, dispatch, exchange, account } = props
     return (
         <tbody>
             {myOpenOrders.map((order) => {
@@ -38,7 +49,12 @@ const showMyOpenOrders = (myOpenOrders) => {
                     <tr className={`order-${order.id}`} key={order.id.toString()}>
                         <td className={`text-${order.orderTypeClass}`}>{order.tokenAmount}</td>
                         <td className={`text-${order.tokenPriceClass}`}>{order.tokenPrice}</td>
-                        <td className='text-muted'>x</td>
+                        <td 
+                            className='text-muted cancel-order'
+                            onClick={(e) => {
+                                cancelOrder(dispatch, exchange, order, account)
+                            }}
+                        >X</td>
                     </tr>
                 )
             })}
@@ -62,7 +78,7 @@ class MyTransactions extends Component {
                                     <th>KSMN/ETH</th>
                                 </tr>
                             </thead>
-                            {this.props.myFilledOrdersLoaded ? showMyFilledOrders(this.props.myFilledOrders) : <Spinner type="table" />}
+                            {this.props.myFilledOrdersLoaded ? showMyFilledOrders(this.props) : <Spinner type="table" />}
                         </table>
                             </Tab>
                             <Tab eventKey="orders" title="Orders">
@@ -74,7 +90,7 @@ class MyTransactions extends Component {
                                     <th>CANCEL</th>
                                 </tr>
                             </thead>
-                            {this.props.myOpenOrdersLoaded ? showMyOpenOrders(this.props.myOpenOrders) : <Spinner type="table" />}
+                            {this.props.myOpenOrdersLoaded ? showMyOpenOrders(this.props) : <Spinner type="table" />}
                         </table>
                             </Tab>
                         </Tabs>
@@ -86,17 +102,18 @@ class MyTransactions extends Component {
 }
 
 function mapStateToProps(state) {
-    console.log({
-        myFilledOrdersLoaded: myFilledOrdersLoadedSelector(state),
-        myFilledOrders: myFilledOrdersSelector(state),
-        myOpenOrdersLoaded: myOpenOrdersLoadedSelector(state),
-        myOpenOrders: myOpenOrdersSelector(state)
-    })
+    const myOpenOrdersLoaded = myOpenOrdersLoadedSelector(state)
+    const orderCancelling = orderCancellingSelector(state)
+
+    console.log('myOpenOrders ====== ',{myOpenOrders: myOpenOrdersSelector(state)})
     return {
         myFilledOrdersLoaded: myFilledOrdersLoadedSelector(state),
         myFilledOrders: myFilledOrdersSelector(state),
-        myOpenOrdersLoaded: myOpenOrdersLoadedSelector(state),
-        myOpenOrders: myOpenOrdersSelector(state)
+        myOpenOrdersLoaded: myOpenOrdersLoaded && !orderCancelling,
+        myOpenOrders: myOpenOrdersSelector(state),
+        exchange: exchangeSelector(state),
+        account: accountSelector(state),
+        // orderCancelling: orderCancellingSelector(state)
     }
 }
 

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-15 18:11:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-25 22:04:00
+ * @LastEditTime: 2022-11-29 15:33:54
  * @Description: 
  */
 import React, { Component } from 'react'
@@ -16,7 +16,7 @@ import { contractsLoadedSelector } from './redux/selectors'
 
 class App extends Component {
 
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     this.loaadBlockchainData(this.props.dispatch);
   }
   async loaadBlockchainData(dispatch) {
@@ -25,7 +25,7 @@ class App extends Component {
     const web3 = loadWeb3(dispatch)
     // const network = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
-    const accounts = await loadAccount(web3, dispatch);
+    await loadAccount(web3, dispatch);
     // const abi = Token.abi;
     // const tokenAdr = Token.networks[networkId].address;
     const token = await loadToken(web3, networkId, dispatch)
@@ -44,7 +44,6 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.props.account)
     return (
       <div>
         <Navbar />

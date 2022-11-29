@@ -2,8 +2,10 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 17:55:57
+ * @LastEditTime: 2022-11-29 17:45:19
  * @Description: 
+ *  选择器函数接收整个 state 对象，并且返回需要的部分数据
+ *  每当 Redux store 更新时，选择器将重新运行，如果它们返回的数据发生更改，则组件将重新渲染
  * @TODO: 
  */
 
@@ -11,7 +13,6 @@ import { get, groupBy, maxBy, minBy, reject } from "lodash";
 import { createSelector } from "reselect";
 import { ETHER_ADDRESS, tokens, ethers, GREEN, RED } from '../Helper'
 import moment from "moment/moment";
-import { canceledOrdersLoaded } from "./actions";
 
 const account = state => get(state, 'web3.account')
 export const accountSelector = createSelector(account, a => a);
@@ -71,7 +72,6 @@ export const filledOrdersSelector = createSelector(
         orders = decorateFilledOrders(orders)
         // Sort order by time desc
         orders = orders.sort((a, b) => b.timestamp - a.timestamp)
-        console.log('filledOrders ==============', orders)
         return orders
     }
 )
@@ -141,7 +141,7 @@ const tokenPriceClass = (tokenPrice, orderId, preOrder) => {
 
 }
 
-const orderBookLoaded = state => canceledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
+const orderBookLoaded = state => cancelledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
 export const orderBookLoadedSelector = createSelector(
     orderBookLoaded,
     obl => obl
@@ -329,3 +329,10 @@ const buildGraphData = (orders) => {
     })
     return graphData
 }
+
+
+const orderCancelling = state => get(state, 'exchange.orderCancelling', false)
+export const orderCancellingSelector = createSelector(
+    orderCancelling,
+    status => status
+)

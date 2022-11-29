@@ -3,7 +3,7 @@
  * @Author: GKing
  * @Date: 2022-11-23 10:19:23
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-27 19:34:43
+ * @LastEditTime: 2022-11-29 11:38:12
  * @Description: fill Exchange orders or other datas
  * @TODO: 
  */
@@ -84,7 +84,7 @@ module.exports = async function(callback) {
         // User1 cancels order
         orderId = result.logs[0].args.id;
         await exchange.cancelOrder(orderId, {from: user1});
-        console.log(`Canceled order from ${user1}`);
+        console.log(`Cancelled order from ${user1}`);
 
 
 
