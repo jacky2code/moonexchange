@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 22:11:36
+ * @LastEditTime: 2022-11-30 11:30:35
  * @Description: 
  *  Reducers 总是通过复制现有状态值，更新副本来不可变地生成新状态
  *  Redux Toolkit createSlice 函数为您生成“slice reducer”函数，并让您编写 “mutable 可变”代码，内部自动将其转变为安全的不可变更新
@@ -79,6 +79,8 @@ function exchange(state = {}, action) {
       return { ...state, balancesLoading: false }
     case 'ALL_BALANCES_LOADING':
       return { ...state, balancesLoading: true }
+    case 'ETHDEPOSITED_AMOUNTCHANGED':
+      return { ...state, ethAmountDeposited: action.ethAmountDeposited }
     default:
       return state
   }

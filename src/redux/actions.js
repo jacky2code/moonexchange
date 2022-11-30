@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:45:30
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 22:12:08
+ * @LastEditTime: 2022-11-30 11:29:36
  * @Description: 在 interactions.js 通过 dispatch 调用 actions.js 中的函数，
  *  如：dispatch(web3AccountLoaded(account))
  * @TODO: 定义 action 给 reducer 使用
@@ -106,5 +106,12 @@ export function allBalancesLoaded() {
 export function balancesLoading() {
     return {
         type: 'ALL_BALANCES_LOADING',
+    }
+}
+
+export function ethDepositedAmountChanged(amount) {
+    return {
+        type: 'ETHDEPOSITED_AMOUNTCHANGED',
+        ethAmountDeposited: amount
     }
 }

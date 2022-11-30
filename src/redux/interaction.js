@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 21:52:00
+ * @LastEditTime: 2022-11-30 12:10:18
  * @Description: 交互
  * @TODO: 
  */
@@ -24,7 +24,8 @@ import {
     tokenBalanceLoaded,
     ethBalanceInExchLoaded,
     tokenBalanceInExchLoaded,
-    allBalancesLoaded
+    allBalancesLoaded,
+    balancesLoading
 } from './actions';
 import { ETHER_ADDRESS } from '../Helper';
 
@@ -111,6 +112,16 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     exchange.events.Cancel({}, (error, event) => {
         dispatch(orderCancelled(event.returnValues))
     })
+    // TODO: filled order
+    // ...
+
+    exchange.events.Deposit({}, (error, event) => {
+        dispatch(allBalancesLoaded())
+    })
+
+    exchange.events.Withdraw({}, (error, event) => {
+        dispatch(allBalancesLoaded())
+    })
 }
 
 export const loadBalance = async (dispatch, web3, exchange, token, account) => {
@@ -134,4 +145,17 @@ export const loadBalance = async (dispatch, web3, exchange, token, account) => {
     dispatch(allBalancesLoaded())
 }
 
+export const depositEth = async (dispatch,exchange,web3,account,amount) => {
+    console.log('ammount ====== ',amount)
+    console.log('web3.utils.toWei(amount,"ether") ====== ',web3.utils.toWei(amount,'ether'))
+    
+    exchange.methods.depositEther().send(
+            { from: account, value:web3.utils.toWei(amount,'ether') }
+        ).on('transactionHash', (hash) => {
+            dispatch(balancesLoading())
+        }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+            console.log(error)
+            window.alert('There was an error!')
+        });
+}
 

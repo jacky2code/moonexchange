@@ -2169,4 +2169,13 @@ Compiling your contracts...
   }
   ```
 
+
+## 14. Balance
+
+- Load balance UI
+
+- Load balance datas
+
+- Deposit ETH
+
   
