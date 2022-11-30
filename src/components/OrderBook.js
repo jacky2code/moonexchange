@@ -2,16 +2,23 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 01:19:11
+ * @LastEditTime: 2022-11-30 19:18:31
  * @Description: 
  * @TODO: 
  */
 
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { orderBookLoadedSelector, orderBookSelector } from '../redux/selectors'
+import { 
+    orderBookLoadedSelector,
+    orderBookSelector,
+    exchangeSelector,
+    accountSelector,
+    orderFillingSelector
+ } from '../redux/selectors'
 import Spinner from './Spinner'
 
+// 使订单消失
 const renderOrder = (order) => {
     return (
         <tr key={order.id}>
@@ -63,9 +70,13 @@ class OrderBook extends Component {
 }
 
 function mapStateToProps(state) {
+    const orderBookLoaded = orderBookLoadedSelector(state)
+    const orderFilling = orderFillingSelector(state)
     return {
-        orderBookLoaded: orderBookLoadedSelector(state),
-        orderBook: orderBookSelector(state)
+        orderBookLoaded: orderBookLoaded && !orderFilling,
+        orderBook: orderBookSelector(state),
+        account: accountSelector(state),
+        exchange: exchangeSelector(state)
     }
 }
 

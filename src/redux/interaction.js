@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 12:10:18
+ * @LastEditTime: 2022-11-30 23:33:53
  * @Description: 交互
  * @TODO: 
  */
@@ -20,6 +20,8 @@ import {
     allOrdersLoaded,
     orderCancelling,
     orderCancelled,
+    orderFilled,
+    orderFilling,
     ethBalanceLoaded,
     tokenBalanceLoaded,
     ethBalanceInExchLoaded,
@@ -76,27 +78,40 @@ export const loadExchange = async (web3, networkId, dispatch) => {
 
 export const loadAllOrders = async (exchange, dispatch) => {
     // Fetch cancelled orders with the 'Cancel' event stream
-    const cancelStream = await exchange.getPastEvents('Cancel', {fromBlock: 0, toBlock: 'latest'})
+    const cancelStream = await exchange.getPastEvents('Cancel', { fromBlock: 0, toBlock: 'latest' })
     // Format the cancelled orders
     const cancelledOrders = cancelStream.map((event) => event.returnValues)
     // Add cancelled orders to redux store
     dispatch(cancelledOrdersLoaded(cancelledOrders))
 
     // Fetch filled orders with the 'Trade' event stream
-    const tradeStream = await exchange.getPastEvents('Trade', {fromBlock: 0, toBlock: 'latest'})
+    const tradeStream = await exchange.getPastEvents('Trade', { fromBlock: 0, toBlock: 'latest' })
     // Format the filled orders
     const filledOrders = tradeStream.map((event) => event.returnValues)
     // Add filled orders to redux store
     dispatch(filledOrdersLoaded(filledOrders))
 
     // Fetch all orders with the 'Order' event stream
-    const allOrdersStream = await exchange.getPastEvents('Order', {fromBlock: 0, toBlock: 'latest'})
+    const allOrdersStream = await exchange.getPastEvents('Order', { fromBlock: 0, toBlock: 'latest' })
     // Format all orders
     const alldOrders = allOrdersStream.map((event) => event.returnValues)
     // Add all orders to redux store
     dispatch(allOrdersLoaded(alldOrders))
 }
 
+// 完成订单
+export const fillOrder = async (dispatch, exchange, order, account) => {
+    exchange.methods.fillOrder(order.id).send({
+        from: account
+    }).on('transactionHash', (hash) => {
+        dispatch(orderFilling())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    });
+}
+
+// 取消订单
 export const cancelOrder = (dispatch, exchange, order, account) => {
     exchange.methods.cancelOrder(order.id).send({
         from: account
@@ -112,8 +127,10 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     exchange.events.Cancel({}, (error, event) => {
         dispatch(orderCancelled(event.returnValues))
     })
-    // TODO: filled order
-    // ...
+    // filled order
+    exchange.events.Trade({}, (error, event) => {
+        dispatch(orderFilled(event.returnValues))
+    })
 
     exchange.events.Deposit({}, (error, event) => {
         dispatch(allBalancesLoaded())
@@ -124,11 +141,12 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     })
 }
 
+// 获取余额
 export const loadBalance = async (dispatch, web3, exchange, token, account) => {
     // ETH balance in wallet
     const ethBlance = await web3.eth.getBalance(account)
     dispatch(ethBalanceLoaded(ethBlance))
-    
+
     // Token balance in walet
     const tokenBalance = await token.methods.balanceOf(account).call()
     dispatch(tokenBalanceLoaded(tokenBalance))
@@ -145,17 +163,64 @@ export const loadBalance = async (dispatch, web3, exchange, token, account) => {
     dispatch(allBalancesLoaded())
 }
 
-export const depositEth = async (dispatch,exchange,web3,account,amount) => {
-    console.log('ammount ====== ',amount)
-    console.log('web3.utils.toWei(amount,"ether") ====== ',web3.utils.toWei(amount,'ether'))
-    
+// 存入 ETH
+export const depositEth = async (dispatch, exchange, web3, account, amount) => {
+    console.log('ammount ====== ', amount)
+    console.log('web3.utils.toWei(amount,"ether") ====== ', web3.utils.toWei(amount, 'ether'))
+
     exchange.methods.depositEther().send(
-            { from: account, value:web3.utils.toWei(amount,'ether') }
+        { from: account, value: web3.utils.toWei(amount, 'ether') }
+    ).on('transactionHash', (hash) => {
+        dispatch(balancesLoading())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    });
+}
+
+// 取出 ETH
+export const withdrawEth = async (dispatch, exchange, web3, account, amount) => {
+    console.log('ammount ====== ', amount)
+    console.log('web3.utils.toWei(amount,"ether") ====== ', web3.utils.toWei(amount, 'ether'))
+
+    exchange.methods.withdrawEthers(web3.utils.toWei(amount, 'ether')).send(
+        { from: account }
+    ).on('transactionHash', (hash) => {
+        dispatch(balancesLoading())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    });
+}
+
+// 存入 Token
+export const depositToken = async (dispatch, exchange, web3, token, account, amount) => {
+    amount = web3.utils.toWei(amount, 'ether')
+    token.methods.approve(
+        exchange.options.address, amount).send({ from: account }
         ).on('transactionHash', (hash) => {
-            dispatch(balancesLoading())
-        }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
-            console.log(error)
-            window.alert('There was an error!')
-        });
+            exchange.methods.depositToken(token.options.address, amount).send(
+                { from: account }
+            ).on('transactionHash', (hash) => {
+                dispatch(balancesLoading())
+            }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+                console.log(error)
+                window.alert('There was an error!')
+            })
+        })
+}
+
+// 取出 Token
+export const withdrawToken = async (dispatch, exchange, web3, token, account, amount) => {
+    amount = web3.utils.toWei(amount, 'ether')
+    exchange.methods.withdrawTokens(token.options.address, amount).send(
+        { from: account }
+    ).on('transactionHash', (hash) => {
+        dispatch(balancesLoading())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    })
+
 }
 

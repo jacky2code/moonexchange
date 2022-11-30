@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 11:34:58
+ * @LastEditTime: 2022-11-30 23:12:18
  * @Description: 
  *  选择器函数接收整个 state 对象，并且返回需要的部分数据
  *  每当 Redux store 更新时，选择器将重新运行，如果它们返回的数据发生更改，则组件将重新渲染
@@ -342,6 +342,11 @@ export const orderCancellingSelector = createSelector(
     status => status
 )
 
+const orderFilling = (state) => get(state, 'exchange.orderFilling', false)
+export const orderFillingSelector = createSelector(
+  orderFilling,
+  (status) => status
+)
 
 // Balances oprations
 const balancesLoading = state => get(state, 'exchange.balancesLoading', true)
@@ -377,5 +382,23 @@ export const tokenBalanceInExchSelector = createSelector(
 const ethAmountDeposited = state => get(state, 'exchange.ethAmountDeposited', null)
 export const ethAmountDepositedSelector = createSelector(
     ethAmountDeposited,
+    amount => amount
+)
+
+const ethAmountWithdrawed = state => get(state, 'exchange.ethAmountWithdrawed', null)
+export const ethAmountWithdrawedSelector = createSelector(
+    ethAmountWithdrawed,
+    amount => amount
+)
+
+const tokenAmountDeposited = state => get(state, 'exchange.tokenAmountDeposited', null)
+export const tokenAmountDepositedSelector = createSelector(
+    tokenAmountDeposited,
+    amount => amount
+)
+
+const tokenAmountWithdrawed = state => get(state, 'exchange.tokenAmountWithdrawed', null)
+export const tokenAmountWithdrawedSelector = createSelector(
+    tokenAmountWithdrawed,
     amount => amount
 )

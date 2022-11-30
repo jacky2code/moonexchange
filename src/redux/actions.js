@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:45:30
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 11:29:36
+ * @LastEditTime: 2022-11-30 23:09:09
  * @Description: 在 interactions.js 通过 dispatch 调用 actions.js 中的函数，
  *  如：dispatch(web3AccountLoaded(account))
  * @TODO: 定义 action 给 reducer 使用
@@ -70,6 +70,19 @@ export function orderCancelled(order) {
     }
 }
 
+export function orderFilling() {
+    return {
+        type: 'ORDER_FILLING'
+    }
+}
+
+export function orderFilled(order) {
+    return {
+        type: 'ORDER_FILLED',
+        order: order
+    }
+}
+
 export function ethBalanceLoaded(ethBalance) {
     return {
         type: 'ETH_BALANCE_LOADED',
@@ -109,9 +122,34 @@ export function balancesLoading() {
     }
 }
 
+// 获取输入框输入的 存入 ETH 数量
 export function ethDepositedAmountChanged(amount) {
     return {
         type: 'ETHDEPOSITED_AMOUNTCHANGED',
         ethAmountDeposited: amount
+    }
+}
+
+// 获取输入框输入的 提取 ETH 数量
+export function ethWithdrawedAmountChanged(amount) {
+    return {
+        type: 'ETHWITHDRAWED_AMOUNTCHANGED',
+        ethAmountWithdrawed: amount
+    }
+}
+
+// 获取输入框输入的 存入 token 数量
+export function tokenDepositedAmountChanged(amount) {
+    return {
+        type: 'TOKENDEPOSITED_AMOUNTCHANGED',
+        tokenAmountDeposited: amount
+    }
+}
+
+// 获取输入框输入的 提取 token 数量
+export function tokenWithdrawedAmountChanged(amount) {
+    return {
+        type: 'TOKENWITHDRAWED_AMOUNTCHANGED',
+        tokenAmountWithdrawed: amount
     }
 }

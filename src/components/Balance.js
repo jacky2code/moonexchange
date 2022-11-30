@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-29 19:54:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 11:54:27
+ * @LastEditTime: 2022-11-30 23:41:50
  * @Description: 
  * @TODO: 
  */
@@ -10,7 +10,13 @@
 import React, { Component } from 'react'
 import { Tab, Tabs } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { loadBalance, depositEth } from '../redux/interaction'
+import {
+    loadBalance,
+    depositEth,
+    withdrawEth,
+    depositToken,
+    withdrawToken
+} from '../redux/interaction'
 import Spinner from './Spinner'
 import {
     web3Selector,
@@ -22,9 +28,19 @@ import {
     tokenBalanceSelector,
     tokenBalanceInExchSelector,
     balancesLoadingSelector,
-    ethAmountDepositedSelector
+    ethAmountDepositedSelector,
+    ethAmountWithdrawedSelector,
+    tokenAmountDepositedSelector,
+    tokenAmountWithdrawedSelector
 } from '../redux/selectors'
-import { ethDepositedAmountChanged } from '../redux/actions'
+
+// 获取输入框改变的数值
+import {
+    ethDepositedAmountChanged,
+    ethWithdrawedAmountChanged,
+    tokenDepositedAmountChanged,
+    tokenWithdrawedAmountChanged
+} from '../redux/actions'
 
 
 
@@ -36,6 +52,9 @@ const showBalanceForm = (props) => {
         tokenBalance,
         tokenBalanceInExch,
         ethAmountDeposited,
+        ethAmountWithdrawed,
+        tokenAmountDeposited,
+        tokenAmountWithdrawed,
         web3,
         token,
         exchange,
@@ -62,6 +81,21 @@ const showBalanceForm = (props) => {
 
                     </tbody>
                 </table>
+                <form className="row" onSubmit={(event) => {
+                    event.preventDefault()
+                    depositEth(dispatch, exchange, web3, account, ethAmountDeposited)
+                    console.log("form submitting...")
+                }}>
+                    <div className="col-12 col-sm pr-sm-2">
+                        <input type="text" placeholder="ETH Amount"
+                            onChange={(e) => dispatch(ethDepositedAmountChanged(e.target.value))}
+                            className="form-control form-control-sm bg-dark text-white"
+                            required />
+                    </div>
+                    <div className="col-12 col-sm-auto pl-sm-0">
+                        <button type="submit" className="btn btn-primary btn-block btn-sm">Deposit</button>
+                    </div>
+                </form>
 
                 <table className='table table-dark table-sm small'>
                     <tbody>
@@ -72,21 +106,15 @@ const showBalanceForm = (props) => {
                         </tr>
                     </tbody>
                 </table>
-
-                <form 
-                    className="row" 
-                    onSubmit={(event) => {
-                        event.preventDefault()
-                        depositEth(dispatch,exchange,web3,account,ethAmountDeposited)
-                        console.log("form submitting...")
-                    }}
-                >
+                <form className="row" onSubmit={(event) => {
+                    event.preventDefault()
+                    depositToken(dispatch, exchange, web3, token, account, tokenAmountDeposited)
+                    console.log("form submitting...")
+                }}>
                     <div className="col-12 col-sm pr-sm-2">
-                        <input
-                            type="text"
-                            placeholder="ETH Amount"
-                            onChange={(e) => dispatch(ethDepositedAmountChanged(e.target.value))}
-                            className="form-control form-control-sm bg-dark text-white" 
+                        <input type="text" placeholder="KSMN Amount"
+                            onChange={(e) => dispatch(tokenDepositedAmountChanged(e.target.value))}
+                            className="form-control form-control-sm bg-dark text-white"
                             required />
                     </div>
                     <div className="col-12 col-sm-auto pl-sm-0">
@@ -94,35 +122,66 @@ const showBalanceForm = (props) => {
                     </div>
                 </form>
             </Tab >
-    <Tab eventKey='withdraw' title='Withdraw' className='bg-dark'>
-        <table className='table table-dark table-sm small'>
-            <thead>
-                <tr>
-                    <th>Token</th>
-                    <th>Wallet</th>
-                    <th>Exchange</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>ETH</td>
-                    <td>{ethBalance}</td>
-                    <td>{ethBalanceInExch}</td>
-                </tr>
+            <Tab eventKey='withdraw' title='Withdraw' className='bg-dark'>
+                <table className='table table-dark table-sm small'>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Wallet</th>
+                            <th>Exchange</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ETH</td>
+                            <td>{ethBalance}</td>
+                            <td>{ethBalanceInExch}</td>
+                        </tr>
 
-            </tbody>
-        </table>
+                    </tbody>
+                </table>
 
-        <table className='table table-dark table-sm small'>
-            <tbody>
-                <tr>
-                    <td>KSMN</td>
-                    <td>{tokenBalance}</td>
-                    <td>{tokenBalanceInExch}</td>
-                </tr>
-            </tbody>
-        </table>
-    </Tab>
+                <form className="row" onSubmit={(event) => {
+                    event.preventDefault()
+                    withdrawEth(dispatch, exchange, web3, account, ethAmountWithdrawed)
+                    console.log("form submitting...")
+                }}>
+                    <div className="col-12 col-sm pr-sm-2">
+                        <input type="text" placeholder="ETH Amount"
+                            onChange={(e) => dispatch(ethWithdrawedAmountChanged(e.target.value))}
+                            className="form-control form-control-sm bg-dark text-white"
+                            required />
+                    </div>
+                    <div className="col-12 col-sm-auto pl-sm-0">
+                        <button type="submit" className="btn btn-primary btn-block btn-sm">Withdraw</button>
+                    </div>
+                </form>
+
+                <table className='table table-dark table-sm small'>
+                    <tbody>
+                        <tr>
+                            <td>KSMN</td>
+                            <td>{tokenBalance}</td>
+                            <td>{tokenBalanceInExch}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <form className="row" onSubmit={(event) => {
+                    event.preventDefault()
+                    withdrawToken(dispatch, exchange, web3, token, account, tokenAmountWithdrawed)
+                    console.log("form submitting...")
+                }}>
+                    <div className="col-12 col-sm pr-sm-2">
+                        <input type="text" placeholder="KSMN Amount"
+                            onChange={(e) => dispatch(tokenWithdrawedAmountChanged(e.target.value))}
+                            className="form-control form-control-sm bg-dark text-white"
+                            required />
+                    </div>
+                    <div className="col-12 col-sm-auto pl-sm-0">
+                        <button type="submit" className="btn btn-primary btn-block btn-sm">Withdraw</button>
+                    </div>
+                </form>
+            </Tab>
         </Tabs >
     )
 }
@@ -172,8 +231,11 @@ function mapStateToProps(state) {
         tokenBalanceInExch: tokenBalanceInExchSelector(state),
         balancesLoading: balancesLoadingSelector(state),
         showBalanceForm: !(balancesLoadingSelector(state)),
-        ethAmountDeposited: ethAmountDepositedSelector(state)
-
+        ethAmountDeposited: ethAmountDepositedSelector(state),
+        ethAmountWithdrawed: ethAmountWithdrawedSelector(state),
+        tokenAmountDeposited: tokenAmountDepositedSelector(state),
+        tokenAmountWithdrawed: tokenAmountWithdrawedSelector(state)
+        
     }
 }
 
