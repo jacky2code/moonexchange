@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 23:09:30
+ * @LastEditTime: 2022-12-01 22:31:43
  * @Description: 
  *  Reducers 总是通过复制现有状态值，更新副本来不可变地生成新状态
  *  Redux Toolkit createSlice 函数为您生成“slice reducer”函数，并让您编写 “mutable 可变”代码，内部自动将其转变为安全的不可变更新
@@ -48,6 +48,8 @@ function token(state = {}, action) {
 }
 
 function exchange(state = {}, action) {
+  // let index, data
+
   switch(action.type) {
     case 'EXCHANGE_LOADED':
       return { ...state, loaded: true, contract: action.contract }
@@ -74,15 +76,19 @@ function exchange(state = {}, action) {
     case 'ORDER_FILLING':
       return { ...state, orderFilling: true}
     case 'ORDER_FILLED':
+      const order_index = state.filledOrders.data.findIndex(order => order.id === action.order.id)
+      let filledOrdersData
+            if (order_index === -1) {
+              filledOrdersData = [...state.filledOrders.data, action.order]
+            } else {
+              filledOrdersData = state.filledOrders.data
+            }
       return {
           ...state,
           orderFilling: false,
           filledOrders: {
             ...state.filledOrders,
-            data: [
-              ...state.filledOrders.data,
-              action.order
-            ]
+            filledOrdersData
           }
         }
     case 'TOKEN_BALANCE_IN_EXCH_LOADED':
@@ -101,6 +107,39 @@ function exchange(state = {}, action) {
       return { ...state, tokenAmountDeposited: action.tokenAmountDeposited }
     case 'TOKENWITHDRAWED_AMOUNTCHANGED':
       return { ...state, tokenAmountWithdrawed: action.tokenAmountWithdrawed }
+    case 'BUY_ORDER_AMOUNT_CHANGED':
+      return { ...state, buyOrder: { ...state.buyOrder, amount: action.buyOrderAmount }  }
+    case 'BUY_ORDER_PRICE_CHANGED':
+      return { ...state, buyOrder: { ...state.buyOrder, price: action.buyOrderPrice } }
+    case 'BUY_ORDER_CREATING':
+      return { ...state, buyOrder: { ...state.buyOrder, amount: null, price: null, creating: true}}
+    case 'ORDER_CREATED':
+      const index = state.allOrders.data.findIndex(
+        (order) => order.id === action.order.id
+      )
+      const data =
+        index === -1 ? [...state.allOrders.data, action.order] : state.allOrders.data
+      return {
+        ...state,
+        allOrders: {
+          ...state.allOrders,
+          data,
+        },
+        buyOrder: {
+          ...state.buyOrder,
+          creating: false,
+        },
+        sellOrder: {
+          ...state.sellOrder,
+          creating: false,
+        },
+      }
+    case 'SELL_ORDER_AMOUNT_CHANGED':
+      return { ...state, sellOrder: { ...state.sellOrder, amount: action.sellOrderAmount }  }
+    case 'SELL_ORDER_PRICE_CHANGED':
+      return { ...state, sellOrder: { ...state.sellOrder, price: action.sellOrderPrice } }
+    case 'SELL_ORDER_CREATING':
+      return { ...state, sellOrder: { ...state.sellOrder, amount: null, price: null, creating: true}}
     default:
       return state
   }

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-29 19:54:15
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 23:41:50
+ * @LastEditTime: 2022-12-01 22:41:14
  * @Description: 
  * @TODO: 
  */
@@ -208,18 +208,6 @@ class Balance extends Component {
 }
 
 function mapStateToProps(state) {
-    console.log('balance_state_log ====== ', {
-        web3: web3Selector(state),
-        token: tokenSelector(state),
-        exchange: exchangeSelector(state),
-        account: accountSelector(state),
-        ethBalance: ethBalanceSelector(state),
-        ethBalanceInExch: ethBalanceInExchSelector(state),
-        tokenBalance: tokenBalanceSelector(state),
-        tokenBalanceInExch: tokenBalanceInExchSelector(state),
-        balancesLoading: balancesLoadingSelector(state)
-    })
-
     return {
         web3: web3Selector(state),
         token: tokenSelector(state),

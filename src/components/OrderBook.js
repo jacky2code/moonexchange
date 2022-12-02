@@ -2,35 +2,55 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 19:18:31
+ * @LastEditTime: 2022-12-01 23:05:34
  * @Description: 
  * @TODO: 
  */
 
 import React, { Component } from 'react'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import { 
+import { fillOrder } from '../redux/interaction'
+import {
     orderBookLoadedSelector,
     orderBookSelector,
     exchangeSelector,
     accountSelector,
     orderFillingSelector
- } from '../redux/selectors'
+} from '../redux/selectors'
 import Spinner from './Spinner'
 
 // 使订单消失
-const renderOrder = (order) => {
+const renderOrder = (order, dispatch, exchange, account) => {
+    console.log('order ====== ', order)
+    const isOwnOrder = (order.userAdr === account)
     return (
-        <tr key={order.id}>
-            <td>{order.tokenAmount}</td>
-            <td className={`text-${order.orderTypeClass}`}>{order.tokenPrice}</td>
-            <td>{order.etherAmount}</td>
-        </tr>
+        <OverlayTrigger
+            key={order.id}
+            placement='left'
+            overlay={
+                <Tooltip id={order.id}>
+                    {`Click here to ${order.orderFillClass}`}
+                </Tooltip>
+            }
+        >
+            <tr key={order.id}
+                className="table-hover pointer"
+                onClick={() => {
+                    isOwnOrder ? alert('own order!') : fillOrder(dispatch, exchange, order, account)
+                }}
+            >
+                <td>{order.tokenAmount}</td>
+                <td className={`text-${order.orderTypeClass}`}>{order.tokenPrice}</td>
+                <td>{order.etherAmount}</td>
+            </tr>
+        </OverlayTrigger>
+
     )
 }
 
 const showOrderBook = (props) => {
-    const { orderBook } = props
+    const { dispatch, orderBook, exchange, account } = props
     return (
         <tbody>
             <tr>
@@ -43,13 +63,13 @@ const showOrderBook = (props) => {
                 <th></th>
                 <th></th>
             </tr>
-            {orderBook.sellOrders.map((order) => renderOrder(order))}
+            {orderBook.sellOrders.map((order) => renderOrder(order, dispatch, exchange, account))}
             <tr className='text-success'>
                 <th>Buy</th>
                 <th></th>
                 <th></th>
             </tr>
-            {orderBook.buyOrders.map((order) => renderOrder(order))}
+            {orderBook.buyOrders.map((order) => renderOrder(order, dispatch, exchange, account))}
         </tbody>
     )
 }

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:45:30
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 23:09:09
+ * @LastEditTime: 2022-12-01 10:04:54
  * @Description: 在 interactions.js 通过 dispatch 调用 actions.js 中的函数，
  *  如：dispatch(web3AccountLoaded(account))
  * @TODO: 定义 action 给 reducer 使用
@@ -151,5 +151,56 @@ export function tokenWithdrawedAmountChanged(amount) {
     return {
         type: 'TOKENWITHDRAWED_AMOUNTCHANGED',
         tokenAmountWithdrawed: amount
+    }
+}
+
+// 获取输入框输入的购买 数量
+export function buyOrderAmountChanged(amount) {
+    return {
+        type: 'BUY_ORDER_AMOUNT_CHANGED',
+        buyOrderAmount: amount
+    }
+}
+
+// 获取输入框输入的购买 价格
+export function buyOrderPriceChanged(price) {
+    return {
+        type: 'BUY_ORDER_PRICE_CHANGED',
+        buyOrderPrice: price
+    }
+}
+
+export function buyOrderCreating() {
+    return {
+        type: 'BUY_ORDER_CREATING'
+    }
+}
+
+// 获取输入框输入的卖出 数量
+export function sellOrderAmountChanged(amount) {
+    return {
+        type: 'SELL_ORDER_AMOUNT_CHANGED',
+        sellOrderAmount: amount
+    }
+}
+
+// 获取输入框输入的卖出 价格
+export function sellOrderPriceChanged(price) {
+    return {
+        type: 'SELL_ORDER_PRICE_CHANGED',
+        sellOrderPrice: price
+    }
+}
+
+export function sellOrderCreating() {
+    return {
+        type: 'SELL_ORDER_CREATING'
+    }
+}
+
+export function orderCreated(order) {
+    return {
+        type: 'ORDER_CREATED',
+        order: order
     }
 }

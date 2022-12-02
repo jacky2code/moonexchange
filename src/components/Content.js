@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 21:28:16
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 22:39:48
+ * @LastEditTime: 2022-12-01 09:10:17
  * @Description: 
  * @TODO: 
  */
@@ -16,6 +16,7 @@ import OrderBook from './OrderBook';
 import MyTransactions from './MyTransactions';
 import PriceChart from './PriceChart';
 import Balance from './Balance';
+import CreateNewOrder from './CreateNewOrder';
 
 class Content extends Component {
 
@@ -35,13 +36,7 @@ class Content extends Component {
 
                 <div className="vertical-split">
                     <Balance />
-                    <div className="card bg-dark text-white">
-                        <div className="card-header">Card Title</div>
-                        <div className="card-body">
-                            <p className="card-text">Some quick example text</p>
-                            <a href="localhost:3000" className="card-link">Card link</a>
-                        </div>
-                    </div>
+                    <CreateNewOrder />
                 </div>
                 <OrderBook />
 

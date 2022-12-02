@@ -2,14 +2,17 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-28 01:18:49
+ * @LastEditTime: 2022-12-01 15:39:03
  * @Description: 
  * @TODO: 
  */
 
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { filledOrdersLoadedSelector, filledOrdersSelector } from '../redux/selectors'
+import { 
+    filledOrdersLoadedSelector, 
+    filledOrdersSelector 
+} from '../redux/selectors'
 import Spinner from './Spinner'
 
 const showFilledOrders = (filledOrders) => {

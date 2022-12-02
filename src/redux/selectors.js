@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 23:12:18
+ * @LastEditTime: 2022-12-01 22:42:21
  * @Description: 
  *  选择器函数接收整个 state 对象，并且返回需要的部分数据
  *  每当 Redux store 更新时，选择器将重新运行，如果它们返回的数据发生更改，则组件将重新渲染
@@ -57,7 +57,6 @@ export const cancelledOrdersSelector = createSelector(
         orders = decorateFilledOrders(orders)
         // Sort order by time desc
         orders = orders.sort((a, b) => b.timestamp - a.timestamp)
-        console.log('cancelledOrders ==============', orders)
         return orders
     }
 )
@@ -146,7 +145,10 @@ const tokenPriceClass = (tokenPrice, orderId, preOrder) => {
 
 }
 
-const orderBookLoaded = state => cancelledOrdersLoaded(state) && filledOrdersLoaded(state) && allOrdersLoaded(state)
+const orderBookLoaded = state => 
+    cancelledOrdersLoaded(state) && 
+    filledOrdersLoaded(state) && 
+    allOrdersLoaded(state)
 export const orderBookLoadedSelector = createSelector(
     orderBookLoaded,
     obl => obl
@@ -401,4 +403,40 @@ const tokenAmountWithdrawed = state => get(state, 'exchange.tokenAmountWithdrawe
 export const tokenAmountWithdrawedSelector = createSelector(
     tokenAmountWithdrawed,
     amount => amount
+)
+
+const buyOrderAmount = state => get(state, 'exchange.buyOrderAmount', null)
+export const buyOrderAmountSelector = createSelector(
+    buyOrderAmount,
+    amount => amount
+)
+
+const buyOrderPrice = state => get(state, 'exchange.buyOrderPrice', null)
+export const buyOrderPriceSelector = createSelector(
+    buyOrderPrice,
+    price => price
+)
+
+const sellOrderAmount = state => get(state, 'exchange.sellOrderAmount', null)
+export const sellOrderAmountSelector = createSelector(
+    sellOrderAmount,
+    amount => amount
+)
+
+const sellOrderPrice = state => get(state, 'exchange.sellOrderPrice', null)
+export const sellOrderPriceSelector = createSelector(
+    sellOrderPrice,
+    price => price
+)
+
+const buyOrder = (state) => get(state, 'exchange.buyOrder', false)
+export const buyOrderSelector = createSelector(
+    buyOrder,
+  (order) => order
+)
+
+const sellOrder = (state) => get(state, 'exchange.sellOrder', false)
+export const sellOrderSelector = createSelector(
+    sellOrder,
+  (order) => order
 )

@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-30 23:33:53
+ * @LastEditTime: 2022-12-01 22:41:29
  * @Description: 交互
  * @TODO: 
  */
@@ -22,6 +22,9 @@ import {
     orderCancelled,
     orderFilled,
     orderFilling,
+    orderCreated,
+    buyOrderCreating,
+    sellOrderCreating,
     ethBalanceLoaded,
     tokenBalanceLoaded,
     ethBalanceInExchLoaded,
@@ -101,14 +104,15 @@ export const loadAllOrders = async (exchange, dispatch) => {
 
 // 完成订单
 export const fillOrder = async (dispatch, exchange, order, account) => {
-    exchange.methods.fillOrder(order.id).send({
-        from: account
-    }).on('transactionHash', (hash) => {
-        dispatch(orderFilling())
-    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
-        console.log(error)
-        window.alert('There was an error!')
-    });
+    exchange.methods
+        .fillOrder(order.id)
+        .send({ from: account })
+        .on('transactionHash', (hash) => {
+            dispatch(orderFilling())
+        }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+            console.log(error)
+            window.alert('There was an error!')
+        });
 }
 
 // 取消订单
@@ -130,6 +134,10 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     // filled order
     exchange.events.Trade({}, (error, event) => {
         dispatch(orderFilled(event.returnValues))
+    })
+
+    exchange.events.Order({}, (error, event) => {
+        dispatch(orderCreated(event.returnValues))
     })
 
     exchange.events.Deposit({}, (error, event) => {
@@ -165,9 +173,6 @@ export const loadBalance = async (dispatch, web3, exchange, token, account) => {
 
 // 存入 ETH
 export const depositEth = async (dispatch, exchange, web3, account, amount) => {
-    console.log('ammount ====== ', amount)
-    console.log('web3.utils.toWei(amount,"ether") ====== ', web3.utils.toWei(amount, 'ether'))
-
     exchange.methods.depositEther().send(
         { from: account, value: web3.utils.toWei(amount, 'ether') }
     ).on('transactionHash', (hash) => {
@@ -180,9 +185,6 @@ export const depositEth = async (dispatch, exchange, web3, account, amount) => {
 
 // 取出 ETH
 export const withdrawEth = async (dispatch, exchange, web3, account, amount) => {
-    console.log('ammount ====== ', amount)
-    console.log('web3.utils.toWei(amount,"ether") ====== ', web3.utils.toWei(amount, 'ether'))
-
     exchange.methods.withdrawEthers(web3.utils.toWei(amount, 'ether')).send(
         { from: account }
     ).on('transactionHash', (hash) => {
@@ -224,3 +226,34 @@ export const withdrawToken = async (dispatch, exchange, web3, token, account, am
 
 }
 
+// 创建买入订单
+export const createBuyOrder = (dispatch, exchange, token, web3, order, account) => {
+    const tokenGetAdr = token.options.address
+    const amountGet = web3.utils.toWei(order.amount, 'ether')
+    const tokenGiveAdr = ETHER_ADDRESS
+    const amountGive = web3.utils.toWei((order.amount * order.price).toString(), 'ether')
+    exchange.methods.createOrder(tokenGetAdr, amountGet, tokenGiveAdr, amountGive).send({
+        from: account
+    }).on('transactionHash', (hash) => {
+        dispatch(buyOrderCreating())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    });
+}
+
+// 创建卖出订单
+export const createSellOrder = (dispatch, exchange, token, web3, order, account) => {
+    const tokenGetAdr = ETHER_ADDRESS
+    const amountGet = web3.utils.toWei((order.amount * order.price).toString(), 'ether')
+    const tokenGiveAdr = token.options.address
+    const amountGive = web3.utils.toWei(order.amount, 'ether')
+    exchange.methods.createOrder(tokenGetAdr, amountGet, tokenGiveAdr, amountGive).send({
+        from: account
+    }).on('transactionHash', (hash) => {
+        dispatch(sellOrderCreating())
+    }).on('error', (error, receipt) => { // 如果交易被网络拒绝并带有交易收据，则第二个参数将是交易收据。
+        console.log(error)
+        window.alert('There was an error!')
+    });
+}
