@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 09:53:21
  * @LastEditors: GKing
- * @LastEditTime: 2022-12-01 22:41:29
+ * @LastEditTime: 2022-12-03 13:25:27
  * @Description: 交互
  * @TODO: 
  */
@@ -133,7 +133,9 @@ export const subscribeToEvents = async (exchange, dispatch) => {
     })
     // filled order
     exchange.events.Trade({}, (error, event) => {
+        console.log('interaction ====== comming')
         dispatch(orderFilled(event.returnValues))
+        console.log('interaction ====== error',error)
     })
 
     exchange.events.Order({}, (error, event) => {

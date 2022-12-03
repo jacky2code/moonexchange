@@ -2,7 +2,7 @@
  * Author: GKing
  * Date: 2022-11-19 08:45:25
  * LastEditors: GKing
- * LastEditTime: 2022-11-24 22:43:18
+ * LastEditTime: 2022-12-02 18:27:14
  * Description: 交易所合约
  *  - Deposit & Withdraw Funds 存入提取资金
  *  - Manage Orders - Make or Cancel 管理订单
@@ -215,7 +215,7 @@ contract Exchange {
     function _trade(uint _orderId, address _userAdr, address _tokenGetAdr, uint _amountGet, address _tokenGiveAdr, uint _amountGive) internal {
         // Fee paid by the user that fills the order, a.k.a. msg.sender.
         // Fee deducted from _amountGet
-        uint _feeAmount = _amountGive.mul(feePercent).div(100);
+        uint _feeAmount = _amountGet.mul(feePercent).div(100);
         
         // Exchange Trade
         tokens[_tokenGetAdr][msg.sender] = tokens[_tokenGetAdr][msg.sender].sub(_amountGet.add(_feeAmount));

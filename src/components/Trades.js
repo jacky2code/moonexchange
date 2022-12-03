@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-12-01 15:39:03
+ * @LastEditTime: 2022-12-03 11:12:43
  * @Description: 
  * @TODO: 
  */
@@ -54,6 +54,10 @@ class Trades extends Component {
 }
 
 function mapStateToProps(state) {
+    console.log('filledOrders ====== ', {
+        filledOrdersLoaded: filledOrdersLoadedSelector(state),
+        filledOrders: filledOrdersSelector(state)
+    })
     return {
         filledOrdersLoaded: filledOrdersLoadedSelector(state),
         filledOrders: filledOrdersSelector(state)

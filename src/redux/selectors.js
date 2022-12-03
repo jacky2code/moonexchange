@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-25 20:54:03
  * @LastEditors: GKing
- * @LastEditTime: 2022-12-01 22:42:21
+ * @LastEditTime: 2022-12-03 12:56:45
  * @Description: 
  *  选择器函数接收整个 state 对象，并且返回需要的部分数据
  *  每当 Redux store 更新时，选择器将重新运行，如果它们返回的数据发生更改，则组件将重新渲染
@@ -68,6 +68,7 @@ export const filledOrdersLoadedSelector = createSelector(
 )
 
 const filledOrders = state => get(state, 'exchange.filledOrders.data', [])
+console.log('selectors filledOrders ====== ', filledOrders)
 export const filledOrdersSelector = createSelector(
     filledOrders,
     (orders) => {

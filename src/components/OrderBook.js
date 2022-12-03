@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-27 10:13:19
  * @LastEditors: GKing
- * @LastEditTime: 2022-12-01 23:05:34
+ * @LastEditTime: 2022-12-03 13:20:01
  * @Description: 
  * @TODO: 
  */
@@ -30,14 +30,14 @@ const renderOrder = (order, dispatch, exchange, account) => {
             placement='left'
             overlay={
                 <Tooltip id={order.id}>
-                    {`Click here to ${order.orderFillClass}`}
+                    {isOwnOrder ? 'own order!' : `Click here to ${order.orderFillClass}`}
                 </Tooltip>
             }
         >
             <tr key={order.id}
                 className="table-hover pointer"
                 onClick={() => {
-                    isOwnOrder ? alert('own order!') : fillOrder(dispatch, exchange, order, account)
+                    if(!isOwnOrder){fillOrder(dispatch, exchange, order, account)}
                 }}
             >
                 <td>{order.tokenAmount}</td>
@@ -92,6 +92,8 @@ class OrderBook extends Component {
 function mapStateToProps(state) {
     const orderBookLoaded = orderBookLoadedSelector(state)
     const orderFilling = orderFillingSelector(state)
+    console.log('orderFilling ====== ', orderFilling)
+    console.log('orderBookLoaded ====== ', orderBookLoaded)
     return {
         orderBookLoaded: orderBookLoaded && !orderFilling,
         orderBook: orderBookSelector(state),

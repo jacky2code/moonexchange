@@ -2,7 +2,7 @@
  * @Author: GKing
  * @Date: 2022-11-24 23:49:17
  * @LastEditors: GKing
- * @LastEditTime: 2022-12-01 22:31:43
+ * @LastEditTime: 2022-12-03 13:33:42
  * @Description: 
  *  Reducers 总是通过复制现有状态值，更新副本来不可变地生成新状态
  *  Redux Toolkit createSlice 函数为您生成“slice reducer”函数，并让您编写 “mutable 可变”代码，内部自动将其转变为安全的不可变更新
@@ -88,7 +88,7 @@ function exchange(state = {}, action) {
           orderFilling: false,
           filledOrders: {
             ...state.filledOrders,
-            filledOrdersData
+            data: filledOrdersData
           }
         }
     case 'TOKEN_BALANCE_IN_EXCH_LOADED':

@@ -2,10 +2,10 @@
  * @Author: GKing
  * @Date: 2022-11-15 20:20:56
  * @LastEditors: GKing
- * @LastEditTime: 2022-11-29 14:46:41
+ * @LastEditTime: 2022-12-02 19:19:58
  * @Description: 
  */
-require('babel-register');
+require('@babel/register');
 require('babel-polyfill');
 require('dotenv').config();
 
